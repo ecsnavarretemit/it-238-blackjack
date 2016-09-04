@@ -5,13 +5,14 @@
 # Version 1.0.0-alpha
 
 from random import shuffle
+from collections import deque
 from app.cards.card import Card
 from app.cards.carderror import CardError
 
 class Deck(object):
 
   def __init__(self):
-    self.cards = []
+    self.cards = deque([])
 
     # card face values 2-10, J, Q, K, A
     self.face_values = [str(i) for i in list(range(2, 11))] + ['J', 'Q', 'K', 'A']
@@ -31,6 +32,21 @@ class Deck(object):
       raise CardError("No cards in deck. call Deck.create()")
 
     shuffle(self.cards)
+
+  def pluck(self, number_of_cards):
+    if number_of_cards <= 0:
+      raise CardError("Can't get cards from the deck. Please specify an integer value greater than 0.")
+
+    try:
+      cards = []
+
+      for _ in list(range(0, number_of_cards)):
+        cards.append(self.cards.popleft())
+
+    except ValueError:
+      raise CardError("Can't get cards from the deck. Please specify an integer value.")
+
+    return cards
 
   def get_cards(self):
     if len(self.cards) == 0:
