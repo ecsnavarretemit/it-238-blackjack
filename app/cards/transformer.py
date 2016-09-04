@@ -4,9 +4,9 @@
 # Licensed under MIT
 # Version 1.0.0-alpha
 
+import re
 from app.cards.card import Card, SHAPES
 from app.cards.error import TransformerError
-import re
 
 class Transformer(object):
   """Base class for card transformers in this module."""
@@ -24,11 +24,11 @@ class CardToTextTransformer(Transformer):
     if card != None:
       self.set_card(card)
 
-  def set_card(self, card:Card):
+  def set_card(self, card: Card):
     self.card = card
 
   def transform(self):
-    if self.card == None:
+    if self.card is None:
       raise TransformerError("Set a card first before transforming it")
 
     return "%s of %s" % (self.card.get_face_value(), self.card.get_shape())
@@ -49,7 +49,7 @@ class TextToCardTransformer(Transformer):
     self.text = text
 
   def transform(self):
-    if self.text == None or self.text == '':
+    if self.text is None or self.text == '':
       raise TransformerError("Set a serialized text of the card first before transforming it")
 
     matches = re.search('([0-9JQKA]+) of (' + '|'.join(SHAPES) + ')', self.text)
