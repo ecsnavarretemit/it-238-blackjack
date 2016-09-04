@@ -45,18 +45,18 @@ class Card(object):
 
   def get_normalized_value(self):
     try:
-      value = int(self.face_value)
+      self.normalized_value = int(self.face_value)
     except ValueError:
       if self.face_value == 'J':
-        value = 11
+        self.normalized_value = 11
       elif self.face_value == 'Q':
-        value = 12
+        self.normalized_value = 12
       elif self.face_value == 'K':
-        value = 13
+        self.normalized_value = 13
       else:
         #value for Ace
-        value = 1
+        self.normalized_value = 1
 
-    return value
+    return self.normalized_value
 
 
