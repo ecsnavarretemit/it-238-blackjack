@@ -4,12 +4,12 @@
 # Licensed under MIT
 # Version 1.0.0-alpha
 
-from app.cards.card import Card
+from app.cards.card import Card as BaseCard
 
-class BlackJackCard(Card):
+class Card(BaseCard):
 
   def __init__(self, shape=None, face_value=None):
-    Card.__init__(self, shape, face_value)
+    BaseCard.__init__(self, shape, face_value)
 
   def get_normalized_value(self):
     try:
