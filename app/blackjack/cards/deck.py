@@ -5,6 +5,7 @@
 # Version 1.0.0-alpha
 
 from app.blackjack.cards.card import Card
+from app.cards.card import FACE_VALUES, SHAPES
 from app.cards.deck import Deck as BaseDeck
 from app.cards.transformer import CardToTextTransformer
 import Pyro4
@@ -17,8 +18,8 @@ class Deck(BaseDeck):
   def create(self):
     self.cards.clear()
 
-    for shape in self.shapes:
-      for face_value in self.face_values:
+    for shape in SHAPES:
+      for face_value in FACE_VALUES:
         self.cards.append(Card(shape, face_value))
 
 @Pyro4.expose

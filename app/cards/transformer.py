@@ -4,7 +4,7 @@
 # Licensed under MIT
 # Version 1.0.0-alpha
 
-from app.cards.card import Card
+from app.cards.card import Card, SHAPES
 from app.cards.error import TransformerError
 import re
 
@@ -52,7 +52,7 @@ class TextToCardTransformer(Transformer):
     if self.text == None or self.text == '':
       raise TransformerError("Set a serialized text of the card first before transforming it")
 
-    matches = re.search('([0-9JQKA]+) of (diamond|heart|spade|clover)', self.text)
+    matches = re.search('([0-9JQKA]+) of (' + '|'.join(SHAPES) + ')', self.text)
 
     if not matches:
       raise TransformerError("Cant deserialize card: %s" % self.text)
