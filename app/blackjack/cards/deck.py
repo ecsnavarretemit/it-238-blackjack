@@ -6,6 +6,8 @@
 
 from app.blackjack.cards.card import Card
 from app.cards.deck import Deck as BaseDeck
+from app.cards.transformer import CardToTextTransformer
+import Pyro4
 
 class Deck(BaseDeck):
 
@@ -18,5 +20,37 @@ class Deck(BaseDeck):
     for shape in self.shapes:
       for face_value in self.face_values:
         self.cards.append(Card(shape, face_value))
+
+@Pyro4.expose
+class SerializableDeck(Deck):
+
+  def __init__(self):
+    Deck.__init__(self)
+
+  def create(self):
+    Deck.create(self)
+
+  def shuffle(self):
+    Deck.shuffle(self)
+
+  def pluck(self, number_of_cards):
+    plucked = Deck.pluck(self, number_of_cards)
+
+    serialized = []
+
+    for card in plucked:
+      serialized.append(CardToTextTransformer(card).transform())
+
+    return serialized
+
+  def get_cards(self):
+    cards = Deck.get_cards(self)
+
+    serialized = []
+
+    for card in cards:
+      serialized.append(CardToTextTransformer(card).transform())
+
+    return serialized
 
 
