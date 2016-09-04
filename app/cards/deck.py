@@ -7,7 +7,7 @@
 from random import shuffle
 from collections import deque
 from app.cards.card import Card
-from app.cards.carderror import CardError
+from app.cards.error import DeckError
 
 class Deck(object):
 
@@ -29,13 +29,13 @@ class Deck(object):
 
   def shuffle(self):
     if len(self.cards) == 0:
-      raise CardError("No cards in deck. call Deck.create()")
+      raise DeckError("No cards in deck. call Deck.create()")
 
     shuffle(self.cards)
 
   def pluck(self, number_of_cards):
     if number_of_cards <= 0:
-      raise CardError("Can't get cards from the deck. Please specify an integer value greater than 0.")
+      raise DeckError("Can't get cards from the deck. Please specify an integer value greater than 0.")
 
     try:
       cards = []
@@ -44,13 +44,13 @@ class Deck(object):
         cards.append(self.cards.popleft())
 
     except ValueError:
-      raise CardError("Can't get cards from the deck. Please specify an integer value.")
+      raise DeckError("Can't get cards from the deck. Please specify an integer value.")
 
     return cards
 
   def get_cards(self):
     if len(self.cards) == 0:
-      raise CardError("No cards in deck. call Deck.create()")
+      raise DeckError("No cards in deck. call Deck.create()")
 
     return self.cards
 

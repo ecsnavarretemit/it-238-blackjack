@@ -4,7 +4,7 @@
 # Licensed under MIT
 # Version 1.0.0-alpha
 
-from app.cards.carderror import CardError
+from app.cards.error import CardError
 
 class Card(object):
   shapes = ["diamond", "heart", "spade", "clover"]
