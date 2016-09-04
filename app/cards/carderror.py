@@ -4,7 +4,7 @@
 # Licensed under MIT
 # Version 1.0.0-alpha
 
-from blackjack.error import Error
+from app.error import Error
 
 class CardError(Error):
   """Error class for related in processing cards."""

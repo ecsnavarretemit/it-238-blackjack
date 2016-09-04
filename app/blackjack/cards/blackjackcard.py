@@ -1,10 +1,10 @@
-# card.py
+# blackjackcard.py
 #
 # Copyright(c) Exequiel Ceasar Navarrete <esnavarrete1@up.edu.ph>
 # Licensed under MIT
 # Version 1.0.0-alpha
 
-from blackjack.cards.card import Card
+from app.cards.card import Card
 
 class BlackJackCard(Card):
 
