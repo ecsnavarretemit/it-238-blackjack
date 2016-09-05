@@ -60,8 +60,8 @@ class Window(object):
     self.main_server_frame = pygui.Frame(self.main_frame)
     self.main_controls_frame = pygui.Frame(self.main_frame)
 
-    self.deal_btn = pygui.Button(self.main_controls_frame, text="Deal")
-    self.hit_btn = pygui.Button(self.main_controls_frame, text="Hit")
+    self.stand_btn = pygui.Button(self.main_controls_frame, text="Stand")
+    self.hit_btn = pygui.Button(self.main_controls_frame, text="Hit", command=self.hit)
     # [Main GUI Init] ::end
 
   def bootstrap(self):
@@ -132,7 +132,7 @@ class Window(object):
     # [server canvas logic] ::end
 
     # [controls] ::start
-    self.deal_btn.grid(row=0, column=0)
+    self.stand_btn.grid(row=0, column=0)
     self.hit_btn.grid(row=0, column=1)
 
     self.main_controls_frame.pack(padx=10, pady=10)
@@ -141,6 +141,15 @@ class Window(object):
     self.main_frame.pack()
 
     # [Main Frame] ::end
+
+  def hit(self):
+    try:
+      newcard = self.game_deck.pluck(1)
+    except SerializeError:
+      print("Pyro traceback:")
+      print("".join(PyroExceptionTraceback()))
+
+    self.load_cards(newcard, self.client_cards, self.main_client_frame)
 
   def load_cards(self, cards, card_collection, frame):
     for card_text in cards:
@@ -155,6 +164,11 @@ class Window(object):
 
   def connect_to_server(self):
     try:
+      # create and shuffle the deck
+      self.game_deck.create()
+      self.game_deck.shuffle()
+
+      # try to check if there are cards generated
       self.game_deck.get_cards()
 
       # switch to the main page
