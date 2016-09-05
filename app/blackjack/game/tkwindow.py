@@ -140,8 +140,6 @@ class Window(object):
 
     self.main_frame.pack()
 
-    # [Main Frame] ::end
-
   def hit(self):
     try:
       newcard = self.game_deck.pluck(1)
