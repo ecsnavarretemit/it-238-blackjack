@@ -7,8 +7,9 @@
 import re
 from app.blackjack.cards.card import Card
 from app.cards.card import SHAPES
-from app.cards.transformer import TextToCardTransformer as BaseTextToCardTransformer
 from app.cards.error import TransformerError
+from app.cards.transformer import get_card_attrs, TextToCardTransformer as BaseTextToCardTransformer, \
+  CardImagePositionToCardTransformer as BaseCardImagePositionToCardTransformer
 
 class TextToCardTransformer(BaseTextToCardTransformer):
   """Transformer class for deserializing text back to black jack card instances"""
@@ -26,5 +27,19 @@ class TextToCardTransformer(BaseTextToCardTransformer):
       raise TransformerError("Cant deserialize card: %s" % self.text)
 
     return Card(matches.group(2), matches.group(1))
+
+class CardImagePositionToCardTransformer(BaseCardImagePositionToCardTransformer):
+  """Transformer class for x and y coordinates back to black jack card instance"""
+
+  def __init__(self, position=None):
+    BaseCardImagePositionToCardTransformer.__init__(self, position)
+
+  def transform(self):
+    if self.position is None:
+      raise TransformerError("Set coordinates first before transforming it.")
+
+    card_attrs = get_card_attrs(self.position)
+
+    return Card(card_attrs['shape'], card_attrs['face'])
 
 
