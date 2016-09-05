@@ -120,12 +120,18 @@ class Window(object):
       print("".join(PyroExceptionTraceback()))
 
     # [client canvas logic] ::start
+    label_client = pygui.Label(self.main_client_frame, text="You")
+    label_client.pack(side=pygui.LEFT)
+
     self.load_cards(player_client, self.client_cards, self.main_client_frame)
 
     self.main_client_frame.pack(padx=10, pady=10)
     # [client canvas logic] ::end
 
     # [server canvas logic] ::start
+    label_computer = pygui.Label(self.main_server_frame, text="Computer")
+    label_computer.pack(side=pygui.LEFT)
+
     self.load_cards(player_server, self.server_cards, self.main_server_frame)
 
     self.main_server_frame.pack(padx=10, pady=10)
