@@ -19,10 +19,6 @@ class Server(object):
     self.server_port = 3000
 
   def start(self, decklabel=None):
-    # create and shuffle the deck
-    self.deck.create()
-    self.deck.shuffle()
-
     if decklabel is None:
       decklabel = "standard.deck"
 
