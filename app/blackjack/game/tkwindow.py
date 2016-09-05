@@ -132,8 +132,8 @@ class Window(object):
     # [server canvas logic] ::end
 
     # [controls] ::start
-    self.stand_btn.grid(row=0, column=0)
-    self.hit_btn.grid(row=0, column=1)
+    self.stand_btn.grid(row=0, column=1)
+    self.hit_btn.grid(row=0, column=0)
 
     self.main_controls_frame.pack(padx=10, pady=10)
     # [controls] ::end
