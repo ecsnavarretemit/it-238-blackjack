@@ -5,9 +5,19 @@
 # Version 1.0.0-alpha
 
 import os
+import sys
 import tkinter as pygui
+from tkinter import messagebox
 from PIL import Image, ImageTk
+from app.cards.transformer import CardToCardImagePositionTransformer
 from app.blackjack.game.error import GameError
+from app.blackjack.cards.transformer import TextToCardTransformer
+from Pyro4.errors import SerializeError, CommunicationError
+from Pyro4.core import Proxy as PyroProxy
+from Pyro4.util import getPyroTraceback as PyroExceptionTraceback, excepthook as PyroExceptHook
+
+# add hooks to exception hooks
+sys.excepthook = PyroExceptHook
 
 class Window(object):
 
@@ -21,23 +31,45 @@ class Window(object):
     # initialize remote connection
     self.remote_connection = None
 
+    # Initialize game deck
+    self.game_deck = PyroProxy('PYRO:standard.deck@localhost:3000')
+
+    # Images
+    self.card_img = None
+    self.splash_img = None
+
+    # client cards
+    self.client_cards = []
+
+    # server cards
+    self.server_cards = []
+
     # [Splash GUI Init] ::start
     self.splash_bootstrapped = False
 
     self.splash_frame = pygui.Frame(self.window)
-    self.start_btn = pygui.Button(self.splash_frame, text="Start Game", command=lambda: self.switch_context('main'))
+    self.start_btn = pygui.Button(self.splash_frame, text="Start Game", command=self.connect_to_server)
     self.splash_logo_canvas = pygui.Canvas(self.splash_frame, width=375, height=355)
     # [Splash GUI Init] ::end
 
     # [Main GUI Init] ::start
+    self.main_bootstrapped = False
+
     self.main_frame = pygui.Frame(self.window)
-    # self.deal_btn = pygui.Button(self.main_frame, text="Deal")
-    # self.hit_btn = pygui.Button(self.main_frame, text="Hit")
+    self.main_client_frame = pygui.Frame(self.main_frame)
+    self.main_server_frame = pygui.Frame(self.main_frame)
+    self.main_controls_frame = pygui.Frame(self.main_frame)
+
+    self.deal_btn = pygui.Button(self.main_controls_frame, text="Deal")
+    self.hit_btn = pygui.Button(self.main_controls_frame, text="Hit")
     # [Main GUI Init] ::end
 
   def bootstrap(self):
     # set window title
     self.window.wm_title(self.window_title)
+
+    # load assets before starting gui
+    self.load_assets()
 
     # show the splash page
     self.splash_gui()
@@ -64,18 +96,7 @@ class Window(object):
 
   def splash_gui(self):
     if self.splash_bootstrapped is False:
-      splash_logo_img = os.path.join(os.getcwd(), "resources/images/royal-flush.png")
-
-      if not os.path.exists(splash_logo_img):
-        raise GameError("Logo for Splash page not found!")
-
-      # open the image and render it on the canvas
-      splash_logo = Image.open(splash_logo_img)
-
-      # prevent garbage collection that's why we are storing the reference to the window object
-      self.window.splash_logo = splash_logo_tk = ImageTk.PhotoImage(splash_logo)
-
-      self.splash_logo_canvas.create_image(0, 0, image=splash_logo_tk, anchor=pygui.NW)
+      self.splash_logo_canvas.create_image(0, 0, image=self.window.splash_img, anchor=pygui.NW)
       self.splash_logo_canvas.pack()
 
       # position the start button
@@ -89,6 +110,87 @@ class Window(object):
     self.splash_frame.pack(padx=10, pady=25)
 
   def main_gui(self):
-    pass
+    try:
+      player_client = self.game_deck.pluck(2)
+      player_server = self.game_deck.pluck(2)
+
+      print("Number of Remaining Cards: %s" % str(len(self.game_deck.get_cards())))
+    except SerializeError:
+      print("Pyro traceback:")
+      print("".join(PyroExceptionTraceback()))
+
+    # [client canvas logic] ::start
+    self.load_cards(player_client, self.client_cards, self.main_client_frame)
+
+    self.main_client_frame.pack(padx=10, pady=10)
+    # [client canvas logic] ::end
+
+    # [server canvas logic] ::start
+    self.load_cards(player_server, self.server_cards, self.main_server_frame)
+
+    self.main_server_frame.pack(padx=10, pady=10)
+    # [server canvas logic] ::end
+
+    # [controls] ::start
+    self.deal_btn.grid(row=0, column=0)
+    self.hit_btn.grid(row=0, column=1)
+
+    self.main_controls_frame.pack(padx=10, pady=10)
+    # [controls] ::end
+
+    self.main_frame.pack()
+
+    # [Main Frame] ::end
+
+  def load_cards(self, cards, card_collection, frame):
+    for card_text in cards:
+      card = TextToCardTransformer(card_text).transform()
+      card_img_post = CardToCardImagePositionTransformer(card).transform()
+
+      canvas = pygui.Canvas(frame, width=78, height=120)
+      canvas.create_image(card_img_post['x'], card_img_post['y'], image=self.window.card_img, anchor=pygui.NW)
+      canvas.pack(side=pygui.RIGHT, fill=pygui.BOTH, expand=True)
+
+      card_collection.append(canvas)
+
+  def connect_to_server(self):
+    try:
+      self.game_deck.get_cards()
+
+      # switch to the main page
+      self.switch_context('main')
+    except (ConnectionRefusedError, CommunicationError):
+      # show message to the user
+      messagebox.showerror("Black Jack", "Failed to connect to server. Try again later.")
+
+      # show trace to the client
+      print("Pyro traceback:")
+      print("".join(PyroExceptionTraceback()))
+
+  def load_assets(self):
+    # [card image] ::start
+    card_img = os.path.join(os.getcwd(), "resources/images/cards.png")
+
+    if not os.path.exists(card_img):
+      raise GameError("Card Faces sprite does not exist!")
+
+    cards = Image.open(card_img)
+
+    # prevent garbage collection that's why we are storing the reference to the window object
+    self.window.card_img = ImageTk.PhotoImage(cards)
+    # [card image] ::start
+
+    # [splash image] ::start
+    splash_logo_img = os.path.join(os.getcwd(), "resources/images/royal-flush.png")
+
+    if not os.path.exists(splash_logo_img):
+      raise GameError("Logo for Splash page not found!")
+
+    # open the image and render it on the canvas
+    splash_logo = Image.open(splash_logo_img)
+
+    # prevent garbage collection that's why we are storing the reference to the window object
+    self.window.splash_img = ImageTk.PhotoImage(splash_logo)
+    # [splash image] ::start
 
 
