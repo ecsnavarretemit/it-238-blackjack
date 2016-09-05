@@ -115,12 +115,12 @@ y_positions = {}
 for x in range(0, len(FACE_VALUES)):
   resolved_face = FACE_VALUES[x]
 
-  x_positions[resolved_face] = x * MOVE_X
+  x_positions[resolved_face] = x * MOVE_X * -1
 
 for y in range(0, len(SHAPES)):
   resolved_shape = SHAPES[y]
 
-  y_positions[resolved_shape] = y * MOVE_Y
+  y_positions[resolved_shape] = y * MOVE_Y * -1
 # [Initialize Position Values] ::end
 
 def get_card_attrs(position):
