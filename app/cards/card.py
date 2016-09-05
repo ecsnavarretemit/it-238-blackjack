@@ -7,7 +7,7 @@
 from app.cards.error import CardError
 
 FACE_VALUES = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
-SHAPES = ["diamond", "heart", "spade", "clover"]
+SHAPES = ["clover", "diamond", "heart", "spade"]
 
 class Card(object):
 
