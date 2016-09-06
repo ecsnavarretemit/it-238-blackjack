@@ -19,6 +19,9 @@ from Pyro4.util import getPyroTraceback as PyroExceptionTraceback, excepthook as
 # add hooks to exception hooks
 sys.excepthook = PyroExceptHook
 
+# TODO: Hide 1 of the server's card
+# TODO: Re-create deck when all cards have been played
+# TODO: Apply blackjack rules
 class Window(object):
 
   def __init__(self, window_title="BlackJack"):
