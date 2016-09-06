@@ -112,10 +112,20 @@ class CardToCardImagePositionTransformer(Transformer):
 x_positions = {}
 y_positions = {}
 
+ctr_x = 0
 for x in range(0, len(FACE_VALUES)):
   resolved_face = FACE_VALUES[x]
 
-  x_positions[resolved_face] = x * MOVE_X * -1
+  # we will not add something to the position of A and 2 cards
+  if resolved_face == 'A' or resolved_face == '2':
+    ctr_x = 0
+
+  # move the position by the value of MOVE_X and add some offset
+  # determined by ctr_x + 1
+  x_positions[resolved_face] = ((x * MOVE_X) + (ctr_x + 1)) * -1
+
+  # increment the counter
+  ctr_x = ctr_x + 1
 
 for y in range(0, len(SHAPES)):
   resolved_shape = SHAPES[y]
