@@ -41,6 +41,9 @@ class Window(object):
     self.card_img = None
     self.splash_img = None
 
+    # blackjack goal number
+    self.winning_number = 21
+
     # client cards
     self.client_cards = []
 
@@ -163,9 +166,34 @@ class Window(object):
 
     self.load_cards(newcard, self.client_cards, self.main_client_frame)
 
-  # TODO: add cards to the server when it less than 21
+  # TODO: remove the cards after declaring winner to allow continuous playing session
+  # TODO: handle ties
   def stand(self):
-    pass
+    while self.get_card_total(self.server_cards) < self.winning_number:
+      try:
+        server_newcard = self.game_deck.pluck(1)
+      except SerializeError:
+        print("Pyro traceback:")
+        print("".join(PyroExceptionTraceback()))
+        break
+
+      self.load_cards(server_newcard, self.server_cards, self.main_server_frame)
+
+    server_card_total = self.get_card_total(self.server_cards)
+    client_card_total = self.get_card_total(self.client_cards)
+
+    if client_card_total == self.winning_number:
+      messagebox.showinfo("BlackJack", "Player wins!")
+    elif server_card_total == self.winning_number:
+      messagebox.showinfo("BlackJack", "Dealer wins!")
+    else:
+      client_difference = self.winning_number - client_card_total
+      server_difference = self.winning_number - server_card_total
+
+      if client_difference > server_difference:
+        messagebox.showinfo("BlackJack", "Player wins!")
+      else:
+        messagebox.showinfo("BlackJack", "Dealer wins!")
 
   def load_cards(self, cards, card_collection, frame):
     for card_text in cards:
