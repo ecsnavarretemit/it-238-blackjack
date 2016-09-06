@@ -163,10 +163,10 @@ def get_card_attrs(position):
 
 def get_card_coords(face_value, shape):
   if not face_value in FACE_VALUES:
-    raise TransformerError("Set a card first before transforming it")
+    raise TransformerError("Face Value: %s is not a valid face." % face_value)
 
   if not shape in SHAPES:
-    raise TransformerError("Set a card first before transforming it")
+    raise TransformerError("Shape: %s is not a valid card shape." % shape)
 
   return {
     'x': x_positions[face_value],
