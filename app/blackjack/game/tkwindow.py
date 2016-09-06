@@ -37,10 +37,6 @@ class Window(object):
     # Initialize game deck
     self.game_deck = PyroProxy('PYRO:standard.deck@localhost:3000')
 
-    # Images
-    self.card_img = None
-    self.splash_img = None
-
     # blackjack goal number
     self.winning_number = 21
 
