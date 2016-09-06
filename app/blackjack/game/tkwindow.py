@@ -160,6 +160,7 @@ class Window(object):
 
       canvas = pygui.Canvas(frame, width=78, height=120)
       canvas.create_image(card_img_post['x'], card_img_post['y'], image=self.window.card_img, anchor=pygui.NW)
+      canvas.card_text = card_text # store the card text as an attribute of the canvas
       canvas.pack(side=pygui.LEFT)
 
       card_collection.append(canvas)
