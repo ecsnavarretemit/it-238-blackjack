@@ -63,7 +63,7 @@ class Window(object):
     self.main_server_frame = pygui.Frame(self.main_frame)
     self.main_controls_frame = pygui.Frame(self.main_frame)
 
-    self.stand_btn = pygui.Button(self.main_controls_frame, text="Stand")
+    self.stand_btn = pygui.Button(self.main_controls_frame, text="Stand", command=self.stand)
     self.hit_btn = pygui.Button(self.main_controls_frame, text="Hit", command=self.hit)
     # [Main GUI Init] ::end
 
@@ -147,6 +147,7 @@ class Window(object):
 
     self.main_frame.pack()
 
+  # TODO: when client card hits 21 or greater, invoke self.stand()
   def hit(self):
     try:
       newcard = self.game_deck.pluck(1)
@@ -155,6 +156,10 @@ class Window(object):
       print("".join(PyroExceptionTraceback()))
 
     self.load_cards(newcard, self.client_cards, self.main_client_frame)
+
+  # TODO: add cards to the server when it less than 21
+  def stand(self):
+    pass
 
   def load_cards(self, cards, card_collection, frame):
     for card_text in cards:
