@@ -11,6 +11,9 @@ from app.cards.error import TransformerError
 MOVE_X = 78
 MOVE_Y = 120
 
+BLANK_X=-157
+BLANK_Y=-492
+
 class Transformer(object):
   """Base class for card transformers in this module."""
   pass
