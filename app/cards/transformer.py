@@ -127,10 +127,16 @@ for x in range(0, len(FACE_VALUES)):
   # increment the counter
   ctr_x = ctr_x + 1
 
+ctr_y = 0
 for y in range(0, len(SHAPES)):
   resolved_shape = SHAPES[y]
 
-  y_positions[resolved_shape] = y * MOVE_Y * -1
+  # move the position by the value of MOVE_X and add some offset
+  # determined by ctr_y * 3
+  y_positions[resolved_shape] = ((y * MOVE_Y) + (ctr_y * 3)) * -1
+
+  # increment counter
+  ctr_y = ctr_y + 1
 # [Initialize Position Values] ::end
 
 def get_card_attrs(position):
