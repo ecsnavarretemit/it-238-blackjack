@@ -113,8 +113,6 @@ class Window(object):
     try:
       player_client = self.game_deck.pluck(2)
       player_server = self.game_deck.pluck(2)
-
-      print("Number of Remaining Cards: %s" % str(len(self.game_deck.get_cards())))
     except SerializeError:
       print("Pyro traceback:")
       print("".join(PyroExceptionTraceback()))
