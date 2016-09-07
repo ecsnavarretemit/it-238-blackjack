@@ -181,8 +181,11 @@ class Window(object):
     # load the server's cards
     self.load_cards(player_server, self.server_cards, self.main_server_frame, True)
 
-    # show the score of the computer
-    self.reflect_score(self.label_computer, "Computer", self.get_card_total(self.server_cards))
+    # get the first card since we only need to display the initial score of the server/dealer
+    first_card = self.server_cards[0]
+
+    # show the initial score of the computer
+    self.reflect_score(self.label_computer, "Computer", self.get_card_total([first_card]))
 
   def reflect_score(self, label, player_type, score):
     label.configure(text="%s: %d" % (player_type, score))
