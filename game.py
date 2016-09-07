@@ -4,7 +4,7 @@
 #
 # Copyright(c) Exequiel Ceasar Navarrete <esnavarrete1@up.edu.ph>
 # Licensed under MIT
-# Version 1.0.0
+# Version 1.0.1
 
 import os
 from yaml import load as yaml_load
@@ -26,10 +26,15 @@ def main():
     config = yaml_load(yaml_config)
 
     # PYRO:standard.deck@localhost:3000
-    game_deck = PyroProxy("PYRO:%s@%s:%d" % (config['app']['deck']['object_name'], config['app']['server']['host'], config['app']['server']['port']))
+    game_deck = PyroProxy("PYRO:%s@%s:%d" % (config['app']['deck']['object_name'],
+                                             config['app']['server']['host'],
+                                             config['app']['server']['port']))
 
     # set the game deck
     window.set_game_deck(game_deck)
+
+    # close the file since we do not need it anymore
+    yaml_config.close()
 
   # start application
   window.bootstrap()

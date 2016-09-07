@@ -333,7 +333,7 @@ max-branches=21
 # Maximum number of attributes for a class (see R0902).
 # DEFAULT:  max-attributes=7
 # RATIONALE:  API mapping
-max-attributes=19
+max-attributes=20
 
 # Minimum number of public methods for a class (see R0903).
 # DEFAULT:  min-public-methods=2

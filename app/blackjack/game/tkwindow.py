@@ -2,7 +2,7 @@
 #
 # Copyright(c) Exequiel Ceasar Navarrete <esnavarrete1@up.edu.ph>
 # Licensed under MIT
-# Version 1.0.0
+# Version 1.0.1
 
 import os
 import sys
@@ -54,8 +54,6 @@ class Window(object):
     # [Splash GUI Init] ::end
 
     # [Main GUI Init] ::start
-    self.main_bootstrapped = False
-
     self.main_frame = pygui.Frame(self.window)
     self.main_client_frame = pygui.Frame(self.main_frame)
     self.main_server_frame = pygui.Frame(self.main_frame)
@@ -181,8 +179,11 @@ class Window(object):
     # load the server's cards
     self.load_cards(player_server, self.server_cards, self.main_server_frame, True)
 
-    # show the score of the computer
-    self.reflect_score(self.label_computer, "Computer", self.get_card_total(self.server_cards))
+    # get the first card since we only need to display the initial score of the server/dealer
+    first_card = self.server_cards[0]
+
+    # show the initial score of the computer
+    self.reflect_score(self.label_computer, "Computer", self.get_card_total([first_card]))
 
   def reflect_score(self, label, player_type, score):
     label.configure(text="%s: %d" % (player_type, score))
@@ -271,13 +272,25 @@ class Window(object):
           'y': BLANK_Y
         }
 
-      if new_card_img_pos == None:
+      if new_card_img_pos is None:
         new_card_img_pos = card_img_pos
 
+      # create canvas
       canvas = pygui.Canvas(frame, width=78, height=120)
-      canvas.img_item = canvas.create_image(new_card_img_pos['x'], new_card_img_pos['y'], image=self.window.card_img, anchor=pygui.NW)
-      canvas.card_text = card_text # store the card text as an attribute of the canvas
+
+      # draw image on the canvas
+      canvas.img_item = canvas.create_image(new_card_img_pos['x'],
+                                            new_card_img_pos['y'],
+                                            image=self.window.card_img,
+                                            anchor=pygui.NW)
+
+      # store the card text as an attribute of the canvas
+      canvas.card_text = card_text
+
+      # store the original position/coordinates of the image
       canvas.orig_pos = card_img_pos
+
+      # display the canvas
       canvas.pack(side=pygui.LEFT)
 
       # store the reference to the hidden card so that we can move its coordinates
