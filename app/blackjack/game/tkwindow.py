@@ -149,35 +149,14 @@ class Window(object):
     # clean up old session if existing
     if len(self.client_cards) > 0:
       # destroy all canvas instances
-      for client_card in self.client_cards:
-        # remove internal references
-        client_card.img_item = None
-        client_card.card_text = None
-        client_card.orig_pos = None
-
-        client_card.destroy()
-
-      # empty the list since all canvas instance have been destroyed
-      self.client_cards.clear()
+      self.clean_player_cards(self.client_cards)
 
       # show the score of the client
       self.reflect_score(self.label_client, "You", 0)
 
     if len(self.server_cards) > 0:
       # remove the reference to the hidden card
-      self.server_hidden_card = None
-
-      # destroy all canvas instances
-      for server_card in self.server_cards:
-        # remove internal references
-        server_card.img_item = None
-        server_card.card_text = None
-        server_card.orig_pos = None
-
-        server_card.destroy()
-
-      # empty the list since all canvas instance have been destroyed
-      self.server_cards.clear()
+      self.clean_player_cards(self.server_cards)
 
       # show the score of the client
       self.reflect_score(self.label_computer, "Computer", 0)
@@ -304,6 +283,22 @@ class Window(object):
         self.server_hidden_card = canvas
 
       card_collection.append(canvas)
+
+  def clean_player_cards(self, card_collection):
+    # clean up old session if existing
+    if len(card_collection) > 0:
+      # destroy all canvas instances
+      for card in card_collection:
+        # remove internal references
+        card.img_item = None
+        card.card_text = None
+        card.orig_pos = None
+
+        # destroy the card canvass
+        card.destroy()
+
+      # empty the list since all canvas instance have been destroyed
+      card_collection.clear()
 
   def get_card_total(self, card_collection):
     card_total = 0
