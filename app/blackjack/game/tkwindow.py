@@ -54,8 +54,6 @@ class Window(object):
     # [Splash GUI Init] ::end
 
     # [Main GUI Init] ::start
-    self.main_bootstrapped = False
-
     self.main_frame = pygui.Frame(self.window)
     self.main_client_frame = pygui.Frame(self.main_frame)
     self.main_server_frame = pygui.Frame(self.main_frame)
