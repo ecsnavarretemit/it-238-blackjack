@@ -48,4 +48,7 @@ class Deck(object):
 
     return self.cards
 
+  def get_remaining_cards(self):
+    return len(self.get_cards())
+
 

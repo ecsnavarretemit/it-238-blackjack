@@ -54,4 +54,7 @@ class SerializableDeck(Deck):
 
     return serialized
 
+  def get_remaining_cards(self):
+    return Deck.get_remaining_cards(self)
+
 
