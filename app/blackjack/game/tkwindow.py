@@ -179,7 +179,6 @@ class Window(object):
     self.reflect_score(self.label_client, "You", self.get_card_total(self.client_cards))
 
   # TODO: remove the cards after declaring winner to allow continuous playing session
-  # TODO: handle ties
   def stand(self):
     while self.get_card_total(self.server_cards) < self.winning_number:
       try:
@@ -198,7 +197,9 @@ class Window(object):
     server_card_total = self.get_card_total(self.server_cards)
     client_card_total = self.get_card_total(self.client_cards)
 
-    if client_card_total == self.winning_number:
+    if client_card_total == server_card_total and client_card_total == self.winning_number:
+      messagebox.showinfo("BlackJack", "Tie!")
+    elif client_card_total == self.winning_number:
       messagebox.showinfo("BlackJack", "Player wins!")
     elif server_card_total == self.winning_number:
       messagebox.showinfo("BlackJack", "Dealer wins!")
@@ -206,7 +207,9 @@ class Window(object):
       client_difference = self.winning_number - client_card_total
       server_difference = self.winning_number - server_card_total
 
-      if client_difference > server_difference:
+      if client_difference == server_difference:
+        messagebox.showinfo("BlackJack", "Tie!")
+      elif client_difference > server_difference:
         messagebox.showinfo("BlackJack", "Player wins!")
       else:
         messagebox.showinfo("BlackJack", "Dealer wins!")
