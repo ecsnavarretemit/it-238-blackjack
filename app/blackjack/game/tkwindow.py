@@ -256,25 +256,25 @@ class Window(object):
 
     for index, card_text in enumerate(cards):
       card = TextToCardTransformer(card_text).transform()
-      card_img_post = CardToCardImagePositionTransformer(card).transform()
-      new_card_img_post = None
+      card_img_pos = CardToCardImagePositionTransformer(card).transform()
+      new_card_img_pos = None
       is_hidden = False
 
       if server_deck is True and index == (num_cards - 1):
         is_hidden = True
 
-        new_card_img_post = {
+        new_card_img_pos = {
           'x': BLANK_X,
           'y': BLANK_Y
         }
 
-      if new_card_img_post == None:
-        new_card_img_post = card_img_post
+      if new_card_img_pos == None:
+        new_card_img_pos = card_img_pos
 
       canvas = pygui.Canvas(frame, width=78, height=120)
-      canvas.img_item = canvas.create_image(new_card_img_post['x'], new_card_img_post['y'], image=self.window.card_img, anchor=pygui.NW)
+      canvas.img_item = canvas.create_image(new_card_img_pos['x'], new_card_img_pos['y'], image=self.window.card_img, anchor=pygui.NW)
       canvas.card_text = card_text # store the card text as an attribute of the canvas
-      canvas.orig_pos = card_img_post
+      canvas.orig_pos = card_img_pos
       canvas.pack(side=pygui.LEFT)
 
       # store the reference to the hidden card so that we can move its coordinates
