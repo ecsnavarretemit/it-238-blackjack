@@ -115,33 +115,14 @@ class Window(object):
     self.splash_frame.pack(padx=10, pady=25)
 
   def main_gui(self):
-    try:
-      player_client = self.game_deck.pluck(2)
-      player_server = self.game_deck.pluck(2)
-    except SerializeError:
-      print("Pyro traceback:")
-      print("".join(PyroExceptionTraceback()))
-
     # [client canvas logic] ::start
     self.label_client.pack(side=pygui.LEFT)
-
-    # load the player's cards
-    self.load_cards(player_client, self.client_cards, self.main_client_frame)
-
-    # show the score of the player
-    self.reflect_score(self.label_client, "You", self.get_card_total(self.client_cards))
 
     self.main_client_frame.pack(padx=10, pady=10)
     # [client canvas logic] ::end
 
     # [server canvas logic] ::start
     self.label_computer.pack(side=pygui.LEFT)
-
-    # load the player's cards
-    self.load_cards(player_server, self.server_cards, self.main_server_frame)
-
-    # show the score of the computer
-    self.reflect_score(self.label_computer, "Computer", self.get_card_total(self.server_cards))
 
     self.main_server_frame.pack(padx=10, pady=10)
     # [server canvas logic] ::end
@@ -153,7 +134,54 @@ class Window(object):
     self.main_controls_frame.pack(padx=10, pady=10)
     # [controls] ::end
 
+    # start the game session
+    self.init_game_session()
+
     self.main_frame.pack()
+
+  def init_game_session(self):
+    # clean up old session if existing
+    if len(self.client_cards) > 0:
+      # destroy all canvas instances
+      for client_card in self.client_cards:
+        client_card.destroy()
+
+      # empty the list since all canvas instance have been destroyed
+      self.client_cards.clear()
+
+      # show the score of the client
+      self.reflect_score(self.label_client, "You", 0)
+
+    if len(self.server_cards) > 0:
+      # destroy all canvas instances
+      for server_card in self.server_cards:
+        server_card.destroy()
+
+      # empty the list since all canvas instance have been destroyed
+      self.server_cards.clear()
+
+      # show the score of the client
+      self.reflect_score(self.label_computer, "Computer", 0)
+
+    # start new session
+    try:
+      player_client = self.game_deck.pluck(2)
+      player_server = self.game_deck.pluck(2)
+    except SerializeError:
+      print("Pyro traceback:")
+      print("".join(PyroExceptionTraceback()))
+
+    # load the client's cards
+    self.load_cards(player_client, self.client_cards, self.main_client_frame)
+
+    # show the score of the client
+    self.reflect_score(self.label_client, "You", self.get_card_total(self.client_cards))
+
+    # load the server's cards
+    self.load_cards(player_server, self.server_cards, self.main_server_frame)
+
+    # show the score of the computer
+    self.reflect_score(self.label_computer, "Computer", self.get_card_total(self.server_cards))
 
   def reflect_score(self, label, player_type, score):
     label.configure(text="%s: %d" % (player_type, score))
@@ -178,7 +206,6 @@ class Window(object):
     # show the new score for the client
     self.reflect_score(self.label_client, "You", self.get_card_total(self.client_cards))
 
-  # TODO: remove the cards after declaring winner to allow continuous playing session
   def stand(self):
     while self.get_card_total(self.server_cards) < self.winning_number:
       try:
@@ -197,22 +224,28 @@ class Window(object):
     server_card_total = self.get_card_total(self.server_cards)
     client_card_total = self.get_card_total(self.client_cards)
 
+    answer = False
+
     if client_card_total == server_card_total and client_card_total == self.winning_number:
-      messagebox.showinfo("BlackJack", "Tie!")
+      answer = messagebox.askokcancel("BlackJack", "Tie! Want to start a new game?")
     elif client_card_total == self.winning_number:
-      messagebox.showinfo("BlackJack", "Player wins!")
+      answer = messagebox.askokcancel("BlackJack", "Player wins! Want to start a new game?")
     elif server_card_total == self.winning_number:
-      messagebox.showinfo("BlackJack", "Dealer wins!")
+      answer = messagebox.askokcancel("BlackJack", "Dealer wins! Want to start a new game?")
     else:
       client_difference = self.winning_number - client_card_total
       server_difference = self.winning_number - server_card_total
 
       if client_difference == server_difference:
-        messagebox.showinfo("BlackJack", "Tie!")
+        answer = messagebox.askokcancel("BlackJack", "Tie! Want to start a new game?")
       elif client_difference > server_difference:
-        messagebox.showinfo("BlackJack", "Player wins!")
+        answer = messagebox.askokcancel("BlackJack", "Player wins! Want to start a new game?")
       else:
-        messagebox.showinfo("BlackJack", "Dealer wins!")
+        answer = messagebox.askokcancel("BlackJack", "Dealer wins! Want to start a new game?")
+
+    # if the user answered "OK" to the question, we start a new game session
+    if answer is True:
+      self.init_game_session()
 
   def load_cards(self, cards, card_collection, frame):
     for card_text in cards:
