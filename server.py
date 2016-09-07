@@ -31,6 +31,9 @@ def main():
     # set the server port
     server.set_port(config['app']['server']['port'])
 
+    # close the file since we do not need it anymore
+    yaml_config.close()
+
     # start the server with custom deck name
     server.start(config['app']['deck']['object_name'])
   else:

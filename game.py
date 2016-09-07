@@ -31,6 +31,9 @@ def main():
     # set the game deck
     window.set_game_deck(game_deck)
 
+    # close the file since we do not need it anymore
+    yaml_config.close()
+
   # start application
   window.bootstrap()
 
