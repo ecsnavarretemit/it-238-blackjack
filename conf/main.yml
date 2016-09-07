@@ -4,10 +4,6 @@ app:
     host: "localhost"
     port: 3000
 
-  client:
-    host: "localhost"
-    port: 3000
-
   deck:
     object_name: "standard.deck"
 
