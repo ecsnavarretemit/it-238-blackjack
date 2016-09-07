@@ -33,7 +33,7 @@ class Window(object):
     self.remote_connection = None
 
     # Initialize game deck
-    self.game_deck = PyroProxy('PYRO:standard.deck@localhost:3000')
+    self.game_deck = None
 
     # blackjack goal number
     self.winning_number = 21
@@ -69,6 +69,11 @@ class Window(object):
     # [Main GUI Init] ::end
 
   def bootstrap(self):
+    if self.game_deck is None:
+      print("No custom deck connection provided. Establishing connection with default parameters.")
+
+      self.game_deck = PyroProxy("PYRO:standard.deck@localhost:3000")
+
     # set window title
     self.window.wm_title(self.window_title)
 
@@ -374,5 +379,8 @@ class Window(object):
     # prevent garbage collection that's why we are storing the reference to the window object
     self.window.splash_img = ImageTk.PhotoImage(splash_logo)
     # [splash image] ::start
+
+  def set_game_deck(self, game_deck: PyroProxy):
+    self.game_deck = game_deck
 
 
