@@ -189,7 +189,7 @@ class Window(object):
     card_total = self.get_card_total(self.client_cards)
 
     if card_total >= self.winning_number:
-      messagebox.showinfo("BlackJack", "Your card already sums up %s. Only up to 21 points." % card_total)
+      messagebox.showinfo(self.window_title, "Your card already sums up %s. Only up to 21 points." % card_total)
       return
 
     try:
@@ -231,21 +231,21 @@ class Window(object):
     answer = False
 
     if client_card_total == server_card_total and client_card_total == self.winning_number:
-      answer = messagebox.askokcancel("BlackJack", "Tie! Want to start a new game?")
+      answer = messagebox.askokcancel(self.window_title, "Tie! Want to start a new game?")
     elif client_card_total == self.winning_number:
-      answer = messagebox.askokcancel("BlackJack", "Player wins! Want to start a new game?")
+      answer = messagebox.askokcancel(self.window_title, "Player wins! Want to start a new game?")
     elif server_card_total == self.winning_number:
-      answer = messagebox.askokcancel("BlackJack", "Dealer wins! Want to start a new game?")
+      answer = messagebox.askokcancel(self.window_title, "Dealer wins! Want to start a new game?")
     else:
       client_difference = self.winning_number - client_card_total
       server_difference = self.winning_number - server_card_total
 
       if client_difference == server_difference:
-        answer = messagebox.askokcancel("BlackJack", "Tie! Want to start a new game?")
+        answer = messagebox.askokcancel(self.window_title, "Tie! Want to start a new game?")
       elif client_difference > server_difference:
-        answer = messagebox.askokcancel("BlackJack", "Player wins! Want to start a new game?")
+        answer = messagebox.askokcancel(self.window_title, "Player wins! Want to start a new game?")
       else:
-        answer = messagebox.askokcancel("BlackJack", "Dealer wins! Want to start a new game?")
+        answer = messagebox.askokcancel(self.window_title, "Dealer wins! Want to start a new game?")
 
     # if the user answered "OK" to the question, we start a new game session
     if answer is True:
@@ -343,7 +343,7 @@ class Window(object):
       self.switch_context('main')
     except (ConnectionRefusedError, CommunicationError):
       # show message to the user
-      messagebox.showerror("Black Jack", "Failed to connect to server. Try again later.")
+      messagebox.showerror(self.window_title, "Failed to connect to server. Try again later.")
 
       # show trace to the client
       print("Pyro traceback:")
