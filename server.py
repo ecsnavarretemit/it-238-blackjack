@@ -4,7 +4,7 @@
 #
 # Copyright(c) Exequiel Ceasar Navarrete <esnavarrete1@up.edu.ph>
 # Licensed under MIT
-# Version 1.0.0
+# Version 1.0.1
 
 import os
 from yaml import load as yaml_load
@@ -30,6 +30,9 @@ def main():
 
     # set the server port
     server.set_port(config['app']['server']['port'])
+
+    # close the file since we do not need it anymore
+    yaml_config.close()
 
     # start the server with custom deck name
     server.start(config['app']['deck']['object_name'])

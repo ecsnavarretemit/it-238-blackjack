@@ -2,7 +2,7 @@
 #
 # Copyright(c) Exequiel Ceasar Navarrete <esnavarrete1@up.edu.ph>
 # Licensed under MIT
-# Version 1.0.0
+# Version 1.0.1
 
 import re
 from app.cards.card import Card, SHAPES, FACE_VALUES
@@ -11,8 +11,8 @@ from app.cards.error import TransformerError
 MOVE_X = 78
 MOVE_Y = 120
 
-BLANK_X=-157
-BLANK_Y=-492
+BLANK_X = -157
+BLANK_Y = -492
 
 class Transformer(object):
   """Base class for card transformers in this module."""
