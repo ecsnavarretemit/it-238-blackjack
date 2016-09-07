@@ -62,6 +62,9 @@ class Window(object):
     self.main_server_frame = pygui.Frame(self.main_frame)
     self.main_controls_frame = pygui.Frame(self.main_frame)
 
+    self.label_client = pygui.Label(self.main_client_frame, text="You")
+    self.label_computer = pygui.Label(self.main_server_frame, text="Computer")
+
     self.stand_btn = pygui.Button(self.main_controls_frame, text="Stand", command=self.stand)
     self.hit_btn = pygui.Button(self.main_controls_frame, text="Hit", command=self.hit)
     # [Main GUI Init] ::end
@@ -120,19 +123,23 @@ class Window(object):
       print("".join(PyroExceptionTraceback()))
 
     # [client canvas logic] ::start
-    label_client = pygui.Label(self.main_client_frame, text="You")
-    label_client.pack(side=pygui.LEFT)
+    self.label_client.pack(side=pygui.LEFT)
 
     self.load_cards(player_client, self.client_cards, self.main_client_frame)
+
+    # show the score of the player
+    self.reflect_score(self.label_client, "You", self.get_card_total(self.client_cards))
 
     self.main_client_frame.pack(padx=10, pady=10)
     # [client canvas logic] ::end
 
     # [server canvas logic] ::start
-    label_computer = pygui.Label(self.main_server_frame, text="Computer")
-    label_computer.pack(side=pygui.LEFT)
+    self.label_computer.pack(side=pygui.LEFT)
 
     self.load_cards(player_server, self.server_cards, self.main_server_frame)
+
+    # show the score of the computer
+    self.reflect_score(self.label_computer, "Computer", self.get_card_total(self.server_cards))
 
     self.main_server_frame.pack(padx=10, pady=10)
     # [server canvas logic] ::end
@@ -145,6 +152,9 @@ class Window(object):
     # [controls] ::end
 
     self.main_frame.pack()
+
+  def reflect_score(self, label, player_type, score):
+    label.configure(text="%s: %d" % (player_type, score))
 
   # TODO: when client card hits 21 or greater, invoke self.stand()
   def hit(self):
@@ -162,6 +172,9 @@ class Window(object):
 
     self.load_cards(newcard, self.client_cards, self.main_client_frame)
 
+    # show the new score for the client
+    self.reflect_score(self.label_client, "You", self.get_card_total(self.client_cards))
+
   # TODO: remove the cards after declaring winner to allow continuous playing session
   # TODO: handle ties
   def stand(self):
@@ -174,6 +187,9 @@ class Window(object):
         break
 
       self.load_cards(server_newcard, self.server_cards, self.main_server_frame)
+
+    # show the score of the computer
+    self.reflect_score(self.label_computer, "Computer", self.get_card_total(self.server_cards))
 
     server_card_total = self.get_card_total(self.server_cards)
     client_card_total = self.get_card_total(self.client_cards)
