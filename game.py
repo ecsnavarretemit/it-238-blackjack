@@ -26,7 +26,9 @@ def main():
     config = yaml_load(yaml_config)
 
     # PYRO:standard.deck@localhost:3000
-    game_deck = PyroProxy("PYRO:%s@%s:%d" % (config['app']['deck']['object_name'], config['app']['server']['host'], config['app']['server']['port']))
+    game_deck = PyroProxy("PYRO:%s@%s:%d" % (config['app']['deck']['object_name'],
+                                             config['app']['server']['host'],
+                                             config['app']['server']['port']))
 
     # set the game deck
     window.set_game_deck(game_deck)
