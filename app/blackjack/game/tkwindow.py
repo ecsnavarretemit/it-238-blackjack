@@ -20,8 +20,6 @@ from Pyro4.util import getPyroTraceback as PyroExceptionTraceback, excepthook as
 sys.excepthook = PyroExceptHook
 
 # TODO: Hide 1 of the server's card
-# TODO: Re-create deck when all cards have been played
-# TODO: Apply blackjack rules
 class Window(object):
 
   def __init__(self, window_title="BlackJack"):
@@ -140,6 +138,13 @@ class Window(object):
     self.main_frame.pack()
 
   def init_game_session(self):
+    remaining_cards = self.game_deck.get_remaining_cards()
+
+    # recreate the deck and shuffle it once it reaches less than or equal to 10
+    if remaining_cards <= 10:
+      self.game_deck.create()
+      self.game_deck.shuffle()
+
     # clean up old session if existing
     if len(self.client_cards) > 0:
       # destroy all canvas instances
