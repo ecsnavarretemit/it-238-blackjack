@@ -6,9 +6,35 @@
 # Licensed under MIT
 # Version 1.0.0-alpha
 
+import os
+from yaml import load as yaml_load
+from Pyro4.core import Proxy as PyroProxy
 from app.blackjack.game.tkwindow import Window as GameWindow
 
-window = GameWindow()
-window.bootstrap()
+def main():
+  # application configuration
+  config = os.path.join(os.getcwd(), "conf/main.yml")
+
+  window = GameWindow()
+
+  # override the default server settings when yaml file exists
+  if os.path.exists(config):
+    # open the file and store to the yaml_config variable
+    yaml_config = open(config)
+
+    # store the refernce to the config
+    config = yaml_load(yaml_config)
+
+    # PYRO:standard.deck@localhost:3000
+    game_deck = PyroProxy("PYRO:%s@%s:%d" % (config['app']['deck']['object_name'], config['app']['server']['host'], config['app']['server']['port']))
+
+    # set the game deck
+    window.set_game_deck(game_deck)
+
+  # start application
+  window.bootstrap()
+
+if __name__ == "__main__":
+  main()
 
 
