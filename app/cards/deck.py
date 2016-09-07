@@ -6,7 +6,7 @@
 
 from random import shuffle
 from collections import deque
-from app.cards.card import Card
+from app.cards.card import Card, FACE_VALUES, SHAPES
 from app.cards.error import DeckError
 
 class Deck(object):
@@ -14,17 +14,11 @@ class Deck(object):
   def __init__(self):
     self.cards = deque([])
 
-    # card face values 2-10, J, Q, K, A
-    self.face_values = [str(i) for i in list(range(2, 11))] + ['J', 'Q', 'K', 'A']
-
-    # card shapes
-    self.shapes = ["diamond", "heart", "spade", "clover"]
-
   def create(self):
     self.cards.clear()
 
-    for shape in self.shapes:
-      for face_value in self.face_values:
+    for shape in SHAPES:
+      for face_value in FACE_VALUES:
         self.cards.append(Card(shape, face_value))
 
   def shuffle(self):
@@ -53,5 +47,8 @@ class Deck(object):
       raise DeckError("No cards in deck. call Deck.create()")
 
     return self.cards
+
+  def get_remaining_cards(self):
+    return len(self.get_cards())
 
 
