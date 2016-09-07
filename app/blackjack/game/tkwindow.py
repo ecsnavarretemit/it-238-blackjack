@@ -9,7 +9,7 @@ import sys
 import tkinter as pygui
 from tkinter import messagebox
 from PIL import Image, ImageTk
-from app.cards.transformer import CardToCardImagePositionTransformer
+from app.cards.transformer import CardToCardImagePositionTransformer, BLANK_X, BLANK_Y
 from app.blackjack.game.error import GameError
 from app.blackjack.cards.transformer import TextToCardTransformer
 from Pyro4.errors import SerializeError, CommunicationError
@@ -43,6 +43,7 @@ class Window(object):
 
     # server cards
     self.server_cards = []
+    self.server_hidden_card = None
 
     # [Splash GUI Init] ::start
     self.splash_bootstrapped = False
@@ -149,6 +150,11 @@ class Window(object):
     if len(self.client_cards) > 0:
       # destroy all canvas instances
       for client_card in self.client_cards:
+        # remove internal references
+        client_card.img_item = None
+        client_card.card_text = None
+        client_card.orig_pos = None
+
         client_card.destroy()
 
       # empty the list since all canvas instance have been destroyed
@@ -158,8 +164,16 @@ class Window(object):
       self.reflect_score(self.label_client, "You", 0)
 
     if len(self.server_cards) > 0:
+      # remove the reference to the hidden card
+      self.server_hidden_card = None
+
       # destroy all canvas instances
       for server_card in self.server_cards:
+        # remove internal references
+        server_card.img_item = None
+        server_card.card_text = None
+        server_card.orig_pos = None
+
         server_card.destroy()
 
       # empty the list since all canvas instance have been destroyed
@@ -183,7 +197,7 @@ class Window(object):
     self.reflect_score(self.label_client, "You", self.get_card_total(self.client_cards))
 
     # load the server's cards
-    self.load_cards(player_server, self.server_cards, self.main_server_frame)
+    self.load_cards(player_server, self.server_cards, self.main_server_frame, True)
 
     # show the score of the computer
     self.reflect_score(self.label_computer, "Computer", self.get_card_total(self.server_cards))
@@ -212,6 +226,12 @@ class Window(object):
     self.reflect_score(self.label_client, "You", self.get_card_total(self.client_cards))
 
   def stand(self):
+    # get the card position for the hidden card
+    hidden_card_new_pos = self.server_hidden_card.orig_pos
+
+    # move the card to the original position
+    self.server_hidden_card.coords(self.server_hidden_card.img_item, hidden_card_new_pos['x'], hidden_card_new_pos['y'])
+
     while self.get_card_total(self.server_cards) < self.winning_number:
       try:
         server_newcard = self.game_deck.pluck(1)
@@ -252,15 +272,36 @@ class Window(object):
     if answer is True:
       self.init_game_session()
 
-  def load_cards(self, cards, card_collection, frame):
-    for card_text in cards:
+  def load_cards(self, cards, card_collection, frame, server_deck=False):
+    num_cards = len(cards)
+
+    for index, card_text in enumerate(cards):
       card = TextToCardTransformer(card_text).transform()
       card_img_post = CardToCardImagePositionTransformer(card).transform()
+      new_card_img_post = None
+      is_hidden = False
+
+      if server_deck is True and index == (num_cards - 1):
+        is_hidden = True
+
+        new_card_img_post = {
+          'x': BLANK_X,
+          'y': BLANK_Y
+        }
+
+      if new_card_img_post == None:
+        new_card_img_post = card_img_post
 
       canvas = pygui.Canvas(frame, width=78, height=120)
-      canvas.create_image(card_img_post['x'], card_img_post['y'], image=self.window.card_img, anchor=pygui.NW)
+      canvas.img_item = canvas.create_image(new_card_img_post['x'], new_card_img_post['y'], image=self.window.card_img, anchor=pygui.NW)
       canvas.card_text = card_text # store the card text as an attribute of the canvas
+      canvas.orig_pos = card_img_post
       canvas.pack(side=pygui.LEFT)
+
+      # store the reference to the hidden card so that we can move its coordinates
+      # for revealing the true value of the card
+      if is_hidden is True:
+        self.server_hidden_card = canvas
 
       card_collection.append(canvas)
 
