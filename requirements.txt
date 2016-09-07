@@ -1,0 +1,4 @@
+Pillow==3.3.1
+Pyro4==4.47
+PyYAML==3.12
+serpent==1.13

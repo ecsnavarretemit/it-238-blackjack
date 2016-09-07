@@ -1,0 +1,10 @@
+# blackjack application config
+app:
+  server:
+    host: "localhost"
+    port: 3000
+
+  deck:
+    object_name: "standard.deck"
+
+
