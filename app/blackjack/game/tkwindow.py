@@ -109,7 +109,6 @@ class Window(object):
       self.splash_logo_canvas.pack()
 
       # position the start button
-      self.start_btn.grid(row=1, column=0)
       self.start_btn.pack()
 
       # set the bootstrap flag to true
