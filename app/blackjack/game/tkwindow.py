@@ -188,7 +188,7 @@ class Window(object):
   def hit(self):
     card_total = self.get_card_total(self.client_cards)
 
-    if card_total >= 21:
+    if card_total >= self.winning_number:
       messagebox.showinfo("BlackJack", "Your card already sums up %s. Only up to 21 points." % card_total)
       return
 
