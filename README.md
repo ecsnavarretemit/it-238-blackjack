@@ -27,8 +27,10 @@ IT 238 Exercise 3 - BlackJack Game with the application of Remote Method Invocat
 
 ## Running
 
-1. Setup virtual env for the project: `pyvenv venv`. Make sure this is run inside the project root folder.
-2. Install application requirements via:`pip install -r requirements.txt`. This will install all required dependencies of the game.
-
+1. Setup `virtualenv` for the project: `pyvenv venv`. Make sure this is executed inside the project root folder.
+2. Activate `virtualenv` by running: `source venv/bin/activate`
+3. Install application requirements via:`pip install -r requirements.txt`. This will install all required dependencies of the game.
+4. Run the game server by running the command: `python server.py`
+5. Run the game by running the command: `python game.py`
 
 
