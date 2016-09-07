@@ -125,6 +125,7 @@ class Window(object):
     # [client canvas logic] ::start
     self.label_client.pack(side=pygui.LEFT)
 
+    # load the player's cards
     self.load_cards(player_client, self.client_cards, self.main_client_frame)
 
     # show the score of the player
@@ -136,6 +137,7 @@ class Window(object):
     # [server canvas logic] ::start
     self.label_computer.pack(side=pygui.LEFT)
 
+    # load the player's cards
     self.load_cards(player_server, self.server_cards, self.main_server_frame)
 
     # show the score of the computer
@@ -170,6 +172,7 @@ class Window(object):
       print("Pyro traceback:")
       print("".join(PyroExceptionTraceback()))
 
+    # load the player's cards
     self.load_cards(newcard, self.client_cards, self.main_client_frame)
 
     # show the new score for the client
@@ -186,6 +189,7 @@ class Window(object):
         print("".join(PyroExceptionTraceback()))
         break
 
+      # load the player's cards
       self.load_cards(server_newcard, self.server_cards, self.main_server_frame)
 
     # show the score of the computer
