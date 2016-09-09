@@ -193,7 +193,10 @@ class Window(object):
     # show popup box to indicate that the score is already 21 or above
     # and succeeding call to `self.hit()` is not allowed
     if card_total >= self.winning_number:
-      messagebox.showinfo(self.window_title, "Your card already sums up %s. Only up to %d points." % (card_total, self.winning_number))
+      messagebox.showinfo(self.window_title,
+                          "Your card already sums up %s. Only up to %d points." %
+                          (card_total, self.winning_number))
+
       return
 
     try:
