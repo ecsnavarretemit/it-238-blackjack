@@ -19,7 +19,6 @@ from Pyro4.util import getPyroTraceback as PyroExceptionTraceback, excepthook as
 # add hooks to exception hooks
 sys.excepthook = PyroExceptHook
 
-# TODO: Hide 1 of the server's card
 class Window(object):
 
   def __init__(self, window_title="BlackJack"):
@@ -188,7 +187,6 @@ class Window(object):
   def reflect_score(self, label, player_type, score):
     label.configure(text="%s: %d" % (player_type, score))
 
-  # TODO: when client card hits 21 or greater, invoke self.stand()
   def hit(self):
     card_total = self.get_card_total(self.client_cards)
 
