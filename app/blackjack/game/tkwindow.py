@@ -236,27 +236,25 @@ class Window(object):
     # show the score of the computer
     self.reflect_score(self.label_computer, "Computer", self.get_card_total(self.server_cards))
 
-    server_card_total = self.get_card_total(self.server_cards)
-    client_card_total = self.get_card_total(self.client_cards)
+    client_difference = self.winning_number - self.get_card_total(self.client_cards)
+    server_difference = self.winning_number - self.get_card_total(self.server_cards)
 
-    answer = False
-
-    if client_card_total == server_card_total and client_card_total == self.winning_number:
-      answer = messagebox.askokcancel(self.window_title, "Tie! Want to start a new game?")
-    elif client_card_total == self.winning_number:
-      answer = messagebox.askokcancel(self.window_title, "Player wins! Want to start a new game?")
-    elif server_card_total == self.winning_number:
-      answer = messagebox.askokcancel(self.window_title, "Dealer wins! Want to start a new game?")
-    else:
-      client_difference = self.winning_number - client_card_total
-      server_difference = self.winning_number - server_card_total
-
+    if client_difference >= 0 and server_difference >= 0:
       if client_difference == server_difference:
-        answer = messagebox.askokcancel(self.window_title, "Tie! Want to start a new game?")
-      elif client_difference > server_difference:
-        answer = messagebox.askokcancel(self.window_title, "Player wins! Want to start a new game?")
+        status = "Tie!"
+      elif client_difference < server_difference:
+        status = "Player wins!"
       else:
-        answer = messagebox.askokcancel(self.window_title, "Dealer wins! Want to start a new game?")
+        status = "Dealer wins!"
+    elif client_difference >= 0 and server_difference < 0:
+      status = "Player wins!"
+    elif client_difference < 0 and server_difference >= 0:
+      status = "Dealer wins!"
+    else:
+      status = "No winner!"
+
+    # show a prompt to start a new game.
+    answer = messagebox.askokcancel(self.window_title, "%s Want to start a new game?" % status)
 
     # if the user answered "OK" to the question, we start a new game session
     if answer is True:
