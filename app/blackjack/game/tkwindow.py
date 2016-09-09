@@ -210,6 +210,10 @@ class Window(object):
     # show the new score for the client
     self.reflect_score(self.label_client, "You", self.get_card_total(self.client_cards))
 
+    # call `self.stand()` when the card total is greater than or equal to 21
+    if self.get_card_total(self.client_cards) >= self.winning_number:
+      self.stand()
+
   def stand(self):
     # get the card position for the hidden card
     hidden_card_new_pos = self.server_hidden_card.orig_pos
