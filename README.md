@@ -6,18 +6,17 @@ IT 238 Exercise 3 - BlackJack Game with the application of Remote Method Invocat
 
 ### Ubuntu
 
-1. Install Image and Tk Libraries:
+1. Install Pip: `sudo apt-get install python3-pip`
+2. Install VirtualENV: `sudo apt-get install python3-virtualenv`
+3. Install Image and Tk Libraries:
 
 	```
 	sudo apt-get install libtiff5-dev libjpeg8-dev zlib1g-dev libfreetype6-dev liblcms2-dev libwebp-dev tcl8.6-dev tk8.6-dev python3-tk
 	```
 
-2. Install Python 3 Development and Setuptools:
+4. Install Python 3 Development and Setuptools:
 
 	`sudo apt-get install python3-dev python3-setuptools`
-
-3. Install Pip: `sudo apt-get install python3-pip`
-4. Install VirtualENV: `sudo apt-get install python3-virtualenv`
 
 ### OS X
 
