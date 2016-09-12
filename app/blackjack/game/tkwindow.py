@@ -2,7 +2,7 @@
 #
 # Copyright(c) Exequiel Ceasar Navarrete <esnavarrete1@up.edu.ph>
 # Licensed under MIT
-# Version 1.0.1
+# Version 1.0.2
 
 import os
 import sys
@@ -19,7 +19,6 @@ from Pyro4.util import getPyroTraceback as PyroExceptionTraceback, excepthook as
 # add hooks to exception hooks
 sys.excepthook = PyroExceptHook
 
-# TODO: Hide 1 of the server's card
 class Window(object):
 
   def __init__(self, window_title="BlackJack"):
@@ -188,12 +187,16 @@ class Window(object):
   def reflect_score(self, label, player_type, score):
     label.configure(text="%s: %d" % (player_type, score))
 
-  # TODO: when client card hits 21 or greater, invoke self.stand()
   def hit(self):
     card_total = self.get_card_total(self.client_cards)
 
+    # show popup box to indicate that the score is already 21 or above
+    # and succeeding call to `self.hit()` is not allowed
     if card_total >= self.winning_number:
-      messagebox.showinfo(self.window_title, "Your card already sums up %s. Only up to 21 points." % card_total)
+      messagebox.showinfo(self.window_title,
+                          "Your card already sums up %s. Only up to %d points." %
+                          (card_total, self.winning_number))
+
       return
 
     try:
@@ -207,6 +210,10 @@ class Window(object):
 
     # show the new score for the client
     self.reflect_score(self.label_client, "You", self.get_card_total(self.client_cards))
+
+    # call `self.stand()` when the card total is greater than or equal to 21
+    if self.get_card_total(self.client_cards) >= self.winning_number:
+      self.stand()
 
   def stand(self):
     # get the card position for the hidden card
@@ -229,27 +236,25 @@ class Window(object):
     # show the score of the computer
     self.reflect_score(self.label_computer, "Computer", self.get_card_total(self.server_cards))
 
-    server_card_total = self.get_card_total(self.server_cards)
-    client_card_total = self.get_card_total(self.client_cards)
+    client_difference = self.winning_number - self.get_card_total(self.client_cards)
+    server_difference = self.winning_number - self.get_card_total(self.server_cards)
 
-    answer = False
-
-    if client_card_total == server_card_total and client_card_total == self.winning_number:
-      answer = messagebox.askokcancel(self.window_title, "Tie! Want to start a new game?")
-    elif client_card_total == self.winning_number:
-      answer = messagebox.askokcancel(self.window_title, "Player wins! Want to start a new game?")
-    elif server_card_total == self.winning_number:
-      answer = messagebox.askokcancel(self.window_title, "Dealer wins! Want to start a new game?")
-    else:
-      client_difference = self.winning_number - client_card_total
-      server_difference = self.winning_number - server_card_total
-
+    if client_difference >= 0 and server_difference >= 0:
       if client_difference == server_difference:
-        answer = messagebox.askokcancel(self.window_title, "Tie! Want to start a new game?")
-      elif client_difference > server_difference:
-        answer = messagebox.askokcancel(self.window_title, "Player wins! Want to start a new game?")
+        status = "Tie!"
+      elif client_difference < server_difference:
+        status = "Player wins!"
       else:
-        answer = messagebox.askokcancel(self.window_title, "Dealer wins! Want to start a new game?")
+        status = "Dealer wins!"
+    elif client_difference >= 0 and server_difference < 0:
+      status = "Player wins!"
+    elif client_difference < 0 and server_difference >= 0:
+      status = "Dealer wins!"
+    else:
+      status = "No winner!"
+
+    # show a prompt to start a new game.
+    answer = messagebox.askokcancel(self.window_title, "%s Want to start a new game?" % status)
 
     # if the user answered "OK" to the question, we start a new game session
     if answer is True:
