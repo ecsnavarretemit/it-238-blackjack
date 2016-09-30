@@ -323,8 +323,11 @@ class Window(object):
       if resolved_cache_item is None:
         resolved_cache_item = self.window.card_cache[card_text]
 
+         # resolve the new x_position
+      x_pos = ((new_idx * (CARD_WIDTH + 2)) + 5)
+
       # draw image on the canvas
-      img_item = canvas.create_image((new_idx * (CARD_WIDTH + 2)),
+      img_item = canvas.create_image(x_pos,
                                      20,
                                      image=resolved_cache_item['tk_img'],
                                      anchor=pygui.NW)
