@@ -2,14 +2,14 @@
 #
 # Copyright(c) Exequiel Ceasar Navarrete <esnavarrete1@up.edu.ph>
 # Licensed under MIT
-# Version 1.0.2
+# Version 1.1.0
 
 import os
 import sys
 import tkinter as pygui
 from tkinter import messagebox
 from PIL import Image, ImageTk
-from app.cards.transformer import CardToCardImagePositionTransformer, BLANK_X, BLANK_Y
+from app.cards.transformer import CardToCardImagePositionTransformer, BLANK_COORDS, CARD_WIDTH
 from app.blackjack.game.error import GameError
 from app.blackjack.cards.transformer import TextToCardTransformer
 from Pyro4.errors import SerializeError, CommunicationError
@@ -24,6 +24,9 @@ class Window(object):
   def __init__(self, window_title="BlackJack"):
     # create new instance of TK
     self.window = pygui.Tk()
+
+    # create cache for tk card images
+    self.window.card_cache = {}
 
     # save the window title
     self.window_title = window_title
@@ -47,22 +50,43 @@ class Window(object):
     # [Splash GUI Init] ::start
     self.splash_bootstrapped = False
 
-    self.splash_frame = pygui.Frame(self.window)
-    self.start_btn = pygui.Button(self.splash_frame, text="Start Game", command=self.connect_to_server)
-    self.splash_logo_canvas = pygui.Canvas(self.splash_frame, width=375, height=355)
+    # Create dictionary of elements
+    self.splash_gui_items = {}
+
+    # store elements in the dictionary
+    self.splash_gui_items['splash_frame'] = pygui.Frame(self.window)
+
+    self.splash_gui_items['start_btn'] = pygui.Button(self.splash_gui_items['splash_frame'],
+                                                      text="Start Game",
+                                                      command=self.connect_to_server)
+
+    self.splash_gui_items['splash_logo_canvas'] = pygui.Canvas(self.splash_gui_items['splash_frame'],
+                                                               width=375,
+                                                               height=355)
     # [Splash GUI Init] ::end
 
     # [Main GUI Init] ::start
-    self.main_frame = pygui.Frame(self.window)
-    self.main_client_frame = pygui.Frame(self.main_frame)
-    self.main_server_frame = pygui.Frame(self.main_frame)
-    self.main_controls_frame = pygui.Frame(self.main_frame)
+    # Create dictionary of elements
+    self.main_gui_items = {}
 
-    self.label_client = pygui.Label(self.main_client_frame, text="You")
-    self.label_computer = pygui.Label(self.main_server_frame, text="Computer")
+    # store elements in the dictionary
+    self.main_gui_items['main_frame'] = pygui.Frame(self.window)
+    self.main_gui_items['main_client_frame'] = pygui.Frame(self.main_gui_items['main_frame'])
+    self.main_gui_items['main_server_frame'] = pygui.Frame(self.main_gui_items['main_frame'])
+    self.main_gui_items['main_controls_frame'] = pygui.Frame(self.main_gui_items['main_frame'])
 
-    self.stand_btn = pygui.Button(self.main_controls_frame, text="Stand", command=self.stand)
-    self.hit_btn = pygui.Button(self.main_controls_frame, text="Hit", command=self.hit)
+    self.main_gui_items['canvas_player'] = pygui.Canvas(self.main_gui_items['main_client_frame'], width=500, height=250)
+    self.main_gui_items['canvas_computer'] = pygui.Canvas(self.main_gui_items['main_server_frame'],
+                                                          width=500,
+                                                          height=250)
+
+    self.main_gui_items['stand_btn'] = pygui.Button(self.main_gui_items['main_controls_frame'],
+                                                    text="Stand",
+                                                    command=self.stand)
+
+    self.main_gui_items['hit_btn'] = pygui.Button(self.main_gui_items['main_controls_frame'],
+                                                  text="Hit",
+                                                  command=self.hit)
     # [Main GUI Init] ::end
 
   def bootstrap(self):
@@ -89,54 +113,58 @@ class Window(object):
   def switch_context(self, context):
     if context == 'main':
       # hide the splash page
-      self.splash_frame.pack_forget()
+      self.splash_gui_items['splash_frame'].pack_forget()
 
       # Show the frame for the game
       self.main_gui()
     else:
       # hide the game
-      self.main_frame.pack_forget()
+      self.main_gui_items['main_frame'].pack_forget()
 
       # Show the splash page.
       self.splash_gui()
 
   def splash_gui(self):
     if self.splash_bootstrapped is False:
-      self.splash_logo_canvas.create_image(0, 0, image=self.window.splash_img, anchor=pygui.NW)
-      self.splash_logo_canvas.pack()
+      self.splash_gui_items['splash_logo_canvas'].create_image(0, 0, image=self.window.splash_img, anchor=pygui.NW)
+      self.splash_gui_items['splash_logo_canvas'].pack()
 
       # position the start button
-      self.start_btn.pack()
+      self.splash_gui_items['start_btn'].pack()
 
       # set the bootstrap flag to true
       self.splash_bootstrapped = True
 
-    self.splash_frame.pack(padx=10, pady=25)
+    self.splash_gui_items['splash_frame'].pack(padx=10, pady=25)
 
   def main_gui(self):
     # [client canvas logic] ::start
-    self.label_client.pack(side=pygui.LEFT)
+    self.main_gui_items['label_client'] = self.main_gui_items['canvas_player'].create_text(10, 0, anchor=pygui.NW)
+    self.main_gui_items['canvas_player'].itemconfig(self.main_gui_items['label_client'], text="You: 0")
 
-    self.main_client_frame.pack(padx=10, pady=10)
+    self.main_gui_items['canvas_player'].pack(side=pygui.RIGHT)
+    self.main_gui_items['main_client_frame'].pack(padx=10, pady=10)
     # [client canvas logic] ::end
 
     # [server canvas logic] ::start
-    self.label_computer.pack(side=pygui.LEFT)
+    self.main_gui_items['label_computer'] = self.main_gui_items['canvas_computer'].create_text(10, 0, anchor=pygui.NW)
+    self.main_gui_items['canvas_computer'].itemconfig(self.main_gui_items['label_computer'], text="Computer: 0")
 
-    self.main_server_frame.pack(padx=10, pady=10)
+    self.main_gui_items['canvas_computer'].pack(side=pygui.RIGHT)
+    self.main_gui_items['main_server_frame'].pack(padx=10, pady=10)
     # [server canvas logic] ::end
 
     # [controls] ::start
-    self.stand_btn.grid(row=0, column=1)
-    self.hit_btn.grid(row=0, column=0)
+    self.main_gui_items['stand_btn'].grid(row=0, column=1)
+    self.main_gui_items['hit_btn'].grid(row=0, column=0)
 
-    self.main_controls_frame.pack(padx=10, pady=10)
+    self.main_gui_items['main_controls_frame'].pack(padx=10, pady=10)
     # [controls] ::end
 
     # start the game session
     self.init_game_session()
 
-    self.main_frame.pack()
+    self.main_gui_items['main_frame'].pack()
 
   def init_game_session(self):
     remaining_cards = self.game_deck.get_remaining_cards()
@@ -149,17 +177,17 @@ class Window(object):
     # clean up old session if existing
     if len(self.client_cards) > 0:
       # destroy all canvas instances
-      self.clean_player_cards(self.client_cards)
+      self.clean_player_cards(self.client_cards, self.main_gui_items['canvas_player'])
 
       # show the score of the client
-      self.reflect_score(self.label_client, "You", 0)
+      self.reflect_score(self.main_gui_items['canvas_player'], self.main_gui_items['label_client'], "You", 0)
 
     if len(self.server_cards) > 0:
       # remove the reference to the hidden card
-      self.clean_player_cards(self.server_cards)
+      self.clean_player_cards(self.server_cards, self.main_gui_items['canvas_computer'])
 
       # show the score of the client
-      self.reflect_score(self.label_computer, "Computer", 0)
+      self.reflect_score(self.main_gui_items['canvas_computer'], self.main_gui_items['label_computer'], "Computer", 0)
 
     # start new session
     try:
@@ -170,22 +198,28 @@ class Window(object):
       print("".join(PyroExceptionTraceback()))
 
     # load the client's cards
-    self.load_cards(player_client, self.client_cards, self.main_client_frame)
+    self.load_cards(player_client, self.client_cards, self.main_gui_items['canvas_player'])
 
     # show the score of the client
-    self.reflect_score(self.label_client, "You", self.get_card_total(self.client_cards))
+    self.reflect_score(self.main_gui_items['canvas_player'],
+                       self.main_gui_items['label_client'],
+                       "You",
+                       self.get_card_total(self.client_cards))
 
     # load the server's cards
-    self.load_cards(player_server, self.server_cards, self.main_server_frame, True)
+    self.load_cards(player_server, self.server_cards, self.main_gui_items['canvas_computer'], True)
 
     # get the first card since we only need to display the initial score of the server/dealer
     first_card = self.server_cards[0]
 
     # show the initial score of the computer
-    self.reflect_score(self.label_computer, "Computer", self.get_card_total([first_card]))
+    self.reflect_score(self.main_gui_items['canvas_computer'],
+                       self.main_gui_items['label_computer'],
+                       "Computer",
+                       self.get_card_total([first_card]))
 
-  def reflect_score(self, label, player_type, score):
-    label.configure(text="%s: %d" % (player_type, score))
+  def reflect_score(self, canvas, label, player_type, score):
+    canvas.itemconfig(label, text="%s: %d" % (player_type, score))
 
   def hit(self):
     card_total = self.get_card_total(self.client_cards)
@@ -206,23 +240,30 @@ class Window(object):
       print("".join(PyroExceptionTraceback()))
 
     # load the player's cards
-    self.load_cards(newcard, self.client_cards, self.main_client_frame)
+    self.load_cards(newcard, self.client_cards, self.main_gui_items['canvas_player'])
 
     # show the new score for the client
-    self.reflect_score(self.label_client, "You", self.get_card_total(self.client_cards))
+    self.reflect_score(self.main_gui_items['canvas_player'],
+                       self.main_gui_items['label_client'],
+                       "You",
+                       self.get_card_total(self.client_cards))
 
     # call `self.stand()` when the card total is greater than or equal to 21
     if self.get_card_total(self.client_cards) >= self.winning_number:
       self.stand()
 
   def stand(self):
-    # get the card position for the hidden card
-    hidden_card_new_pos = self.server_hidden_card.orig_pos
+    hidden_card = self.server_hidden_card['text']
 
-    # move the card to the original position
-    self.server_hidden_card.coords(self.server_hidden_card.img_item, hidden_card_new_pos['x'], hidden_card_new_pos['y'])
+    # reveal the hidden card
+    self.main_gui_items['canvas_computer'].itemconfig(self.server_hidden_card['canvas_img'],
+                                                      image=self.window.card_cache[hidden_card]['tk_img'])
 
-    while self.get_card_total(self.server_cards) < self.winning_number:
+    # locally copy the list
+    server_cards = self.server_cards[:]
+    server_new_cards = []
+
+    while self.get_card_total(server_cards) < self.winning_number:
       try:
         server_newcard = self.game_deck.pluck(1)
       except SerializeError:
@@ -230,11 +271,22 @@ class Window(object):
         print("".join(PyroExceptionTraceback()))
         break
 
-      # load the player's cards
-      self.load_cards(server_newcard, self.server_cards, self.main_server_frame)
+      # store new cards in a separate list
+      server_new_cards.append(server_newcard[0])
+
+      # append the new cards to emulate behavior
+      server_cards.append({
+        'text': server_newcard[0]
+      })
+
+    # load the player's cards
+    self.load_cards(server_new_cards, self.server_cards, self.main_gui_items['canvas_computer'])
 
     # show the score of the computer
-    self.reflect_score(self.label_computer, "Computer", self.get_card_total(self.server_cards))
+    self.reflect_score(self.main_gui_items['canvas_computer'],
+                       self.main_gui_items['label_computer'],
+                       "Computer",
+                       self.get_card_total(self.server_cards))
 
     client_difference = self.winning_number - self.get_card_total(self.client_cards)
     server_difference = self.winning_number - self.get_card_total(self.server_cards)
@@ -260,63 +312,87 @@ class Window(object):
     if answer is True:
       self.init_game_session()
 
-  def load_cards(self, cards, card_collection, frame, server_deck=False):
+  def load_cards(self, cards, card_collection, canvas, server_deck=False):
     num_cards = len(cards)
 
-    for index, card_text in enumerate(cards):
-      card = TextToCardTransformer(card_text).transform()
-      card_img_pos = CardToCardImagePositionTransformer(card).transform()
-      new_card_img_pos = None
-      is_hidden = False
+    # if card cache is empty populate it
+    if not self.window.card_cache:
+      self.assemble_card_cache()
 
-      if server_deck is True and index == (num_cards - 1):
+    # get the starting index to prevent placing card over another
+    start_idx = len(card_collection)
+
+    for index, card_text in enumerate(cards):
+      resolved_cache_item = None
+      is_hidden = False
+      new_idx = index + start_idx
+
+      if server_deck is True and new_idx == (num_cards - 1):
         is_hidden = True
 
-        new_card_img_pos = {
-          'x': BLANK_X,
-          'y': BLANK_Y
-        }
+        resolved_cache_item = self.window.card_cache['blank']
 
-      if new_card_img_pos is None:
-        new_card_img_pos = card_img_pos
+      if resolved_cache_item is None:
+        resolved_cache_item = self.window.card_cache[card_text]
 
-      # create canvas
-      canvas = pygui.Canvas(frame, width=78, height=120)
+         # resolve the new x_position
+      x_pos = ((new_idx * (CARD_WIDTH + 2)) + 5)
 
       # draw image on the canvas
-      canvas.img_item = canvas.create_image(new_card_img_pos['x'],
-                                            new_card_img_pos['y'],
-                                            image=self.window.card_img,
-                                            anchor=pygui.NW)
+      img_item = canvas.create_image(x_pos,
+                                     20,
+                                     image=resolved_cache_item['tk_img'],
+                                     anchor=pygui.NW)
 
-      # store the card text as an attribute of the canvas
-      canvas.card_text = card_text
+      # assemble card metadata
+      card_metadata = {
+        'canvas_img': img_item,
+        'text': card_text,
+        'orig_coords': self.window.card_cache[card_text]['coords'],
+        'is_hidden': is_hidden
+      }
 
-      # store the original position/coordinates of the image
-      canvas.orig_pos = card_img_pos
+      # store the hidden card
+      if is_hidden:
+        self.server_hidden_card = card_metadata
 
-      # display the canvas
-      canvas.pack(side=pygui.LEFT)
+      card_collection.append(card_metadata)
 
-      # store the reference to the hidden card so that we can move its coordinates
-      # for revealing the true value of the card
-      if is_hidden is True:
-        self.server_hidden_card = canvas
+  def assemble_card_cache(self):
+    cards = self.game_deck.get_cards()
 
-      card_collection.append(canvas)
+    for card_text in cards:
+      card = TextToCardTransformer(card_text).transform()
+      card_img_coords = CardToCardImagePositionTransformer(card).transform()
 
-  def clean_player_cards(self, card_collection):
+      # crop the image
+      resolved_face_and_shape = self.window.cards_img.crop(card_img_coords)
+
+      # cache it inside the window
+      self.window.card_cache[card_text] = {
+        'tk_img': ImageTk.PhotoImage(resolved_face_and_shape),
+        'coords': card_img_coords
+      }
+
+    # crop the blank card
+    resolved_blank = self.window.cards_img.crop(BLANK_COORDS)
+
+    # cache blank card
+    self.window.card_cache['blank'] = {
+      'tk_img': ImageTk.PhotoImage(resolved_blank),
+      'coords': BLANK_COORDS
+    }
+
+  def clean_player_cards(self, card_collection, canvas):
     # clean up old session if existing
     if len(card_collection) > 0:
       # destroy all canvas instances
       for card in card_collection:
         # remove internal references
-        card.img_item = None
-        card.card_text = None
-        card.orig_pos = None
+        card['text'] = None
+        card['orig_pos'] = None
 
-        # destroy the card canvass
-        card.destroy()
+        canvas.delete(card['canvas_img'])
 
       # empty the list since all canvas instance have been destroyed
       card_collection.clear()
@@ -326,7 +402,7 @@ class Window(object):
 
     ace_counter = 0
     for card in card_collection:
-      card_obj = TextToCardTransformer(card.card_text).transform()
+      card_obj = TextToCardTransformer(card['text']).transform()
       card_value = card_obj.get_normalized_value()
 
       # increment the ace counter if we enconter one
@@ -360,6 +436,9 @@ class Window(object):
       # try to check if there are cards generated
       self.game_deck.get_cards()
 
+      # assemble card cache
+      self.assemble_card_cache()
+
       # switch to the main page
       self.switch_context('main')
     except (ConnectionRefusedError, CommunicationError):
@@ -377,10 +456,7 @@ class Window(object):
     if not os.path.exists(card_img):
       raise GameError("Card Faces sprite does not exist!")
 
-    cards = Image.open(card_img)
-
-    # prevent garbage collection that's why we are storing the reference to the window object
-    self.window.card_img = ImageTk.PhotoImage(cards)
+    self.window.cards_img = Image.open(card_img)
     # [card image] ::start
 
     # [splash image] ::start
