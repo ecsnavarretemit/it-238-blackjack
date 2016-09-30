@@ -4,15 +4,17 @@
 # Licensed under MIT
 # Version 1.0.2
 
+import os
 import re
+from PIL import Image
 from app.cards.card import Card, SHAPES, FACE_VALUES
 from app.cards.error import TransformerError
+from app.blackjack.game.error import GameError
 
 MOVE_X = 78
 MOVE_Y = 120
 
-BLANK_X = -157
-BLANK_Y = -492
+BLANK_COORDS = (158, 492, 237, 615)
 
 class Transformer(object):
   """Base class for card transformers in this module."""
@@ -109,59 +111,77 @@ class CardToCardImagePositionTransformer(Transformer):
 
     return get_card_coords(self.card.get_face_value(), self.card.get_shape())
 
+# [Image Position Resolution] ::start
+card_img_path = os.path.join(os.getcwd(), "resources/images/cards.png")
+
+if not os.path.exists(card_img_path):
+  raise GameError("Card Faces sprite does not exist!")
+
+# open the image file
+card_img = Image.open(card_img_path)
+
+# destructure list
+width, height = card_img.size
+
+CARD_WIDTH = int(width / 13)
+CARD_HEIGHT = int(height / 5)
+
+top = 0
+right = CARD_WIDTH
+bottom = CARD_HEIGHT
+left = 0
+
+# create tmp coordinates
+tmp_top = top
+tmp_right = right
+tmp_bottom = bottom
+tmp_left = left
+
+# prevent garbage collection that's why we are storing the reference to the window object
+resolved_cards = {}
+
+for shape_idx in range(0, len(SHAPES)):
+  for face_idx in range(0, len(FACE_VALUES)):
+    # assemble dictionary key
+    key = "%s of %s" % (FACE_VALUES[face_idx], SHAPES[shape_idx])
+
+    # store the position
+    resolved_cards[key] = (tmp_left, tmp_top, tmp_right, tmp_bottom)
+
+    # adjust left and right coordinates
+    tmp_left += right
+    tmp_right += right
+
+  # reset top and left coordinates
+  tmp_left = 0
+  tmp_right = right
+
+  # adjust top and bottom coordinates
+  tmp_top += bottom
+  tmp_bottom += bottom
+
+# close the file pointer
+card_img.close()
+# [Image Position Resolution] ::end
+
 # utility functions
+def get_card_attrs(coords):
+  found_card = None
 
-# [Initialize Position Values] ::start
-x_positions = {}
-y_positions = {}
-
-ctr_x = 0
-for x in range(0, len(FACE_VALUES)):
-  resolved_face = FACE_VALUES[x]
-
-  # we will not add something to the position of A and 2 cards
-  if resolved_face == 'A' or resolved_face == '2':
-    ctr_x = 0
-
-  # move the position by the value of MOVE_X and add some offset
-  # determined by ctr_x + 1
-  x_positions[resolved_face] = ((x * MOVE_X) + (ctr_x + 1)) * -1
-
-  # increment the counter
-  ctr_x = ctr_x + 1
-
-ctr_y = 0
-for y in range(0, len(SHAPES)):
-  resolved_shape = SHAPES[y]
-
-  # move the position by the value of MOVE_X and add some offset
-  # determined by ctr_y * 3
-  y_positions[resolved_shape] = ((y * MOVE_Y) + (ctr_y * 3)) * -1
-
-  # increment counter
-  ctr_y = ctr_y + 1
-# [Initialize Position Values] ::end
-
-def get_card_attrs(position):
-  found_face = None
-  found_shape = None
-
-  for face_value, x_position in x_positions.items():
-    if x_position == position['x']:
-      found_face = face_value
+  for card, card_coords in resolved_cards.items():
+    if set(coords) == set(card_coords) and len(coords) == len(card_coords):
+      found_card = card
       break
 
-  for shape, y_position in y_positions.items():
-    if y_position == position['y']:
-      found_shape = shape
-      break
-
-  if found_face is None or found_shape is None:
+  if found_card is None:
     raise TransformerError("Cant transform to card by its position")
 
+  # convert to card instance to extract face and shape
+  transformed_card = TextToCardTransformer(found_card).transform()
+
   return {
-    'face': found_face,
-    'shape': found_shape
+    'face': transformed_card.get_face_value(),
+    'shape': transformed_card.get_shape()
   }
 
 def get_card_coords(face_value, shape):
@@ -171,9 +191,13 @@ def get_card_coords(face_value, shape):
   if not shape in SHAPES:
     raise TransformerError("Shape: %s is not a valid card shape." % shape)
 
-  return {
-    'x': x_positions[face_value],
-    'y': y_positions[shape]
-  }
+  # assemble dictionary key
+  card_key = "%s of %s" % (face_value, shape)
+
+  # throw error when card_key does not exist
+  if not card_key in resolved_cards:
+    raise TransformerError("Card coordinates not found.")
+
+  return resolved_cards[card_key]
 
 
