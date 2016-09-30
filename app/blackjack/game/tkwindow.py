@@ -50,25 +50,46 @@ class Window(object):
     # [Splash GUI Init] ::start
     self.splash_bootstrapped = False
 
-    self.splash_frame = pygui.Frame(self.window)
-    self.start_btn = pygui.Button(self.splash_frame, text="Start Game", command=self.connect_to_server)
-    self.splash_logo_canvas = pygui.Canvas(self.splash_frame, width=375, height=355)
+    # Create dictionary of elements
+    self.splash_gui_items = {}
+
+    # store elements in the dictionary
+    self.splash_gui_items['splash_frame'] = pygui.Frame(self.window)
+
+    self.splash_gui_items['start_btn'] = pygui.Button(self.splash_gui_items['splash_frame'],
+                                                      text="Start Game",
+                                                      command=self.connect_to_server)
+
+    self.splash_gui_items['splash_logo_canvas'] = pygui.Canvas(self.splash_gui_items['splash_frame'],
+                                                               width=375,
+                                                               height=355)
     # [Splash GUI Init] ::end
 
     # [Main GUI Init] ::start
-    self.main_frame = pygui.Frame(self.window)
-    self.main_client_frame = pygui.Frame(self.main_frame)
-    self.main_server_frame = pygui.Frame(self.main_frame)
-    self.main_controls_frame = pygui.Frame(self.main_frame)
+    # Create dictionary of elements
+    self.main_gui_items = {}
 
-    self.label_client = pygui.Label(self.main_client_frame, text="You")
-    self.label_computer = pygui.Label(self.main_server_frame, text="Computer")
+    # store elements in the dictionary
+    self.main_gui_items['main_frame'] = pygui.Frame(self.window)
+    self.main_gui_items['main_client_frame'] = pygui.Frame(self.main_gui_items['main_frame'])
+    self.main_gui_items['main_server_frame'] = pygui.Frame(self.main_gui_items['main_frame'])
+    self.main_gui_items['main_controls_frame'] = pygui.Frame(self.main_gui_items['main_frame'])
 
-    self.canvas_player = pygui.Canvas(self.main_client_frame, width=500, height=250)
-    self.canvas_computer = pygui.Canvas(self.main_server_frame, width=500, height=250)
+    self.main_gui_items['label_client'] = pygui.Label(self.main_gui_items['main_client_frame'], text="You")
+    self.main_gui_items['label_computer'] = pygui.Label(self.main_gui_items['main_server_frame'], text="Computer")
 
-    self.stand_btn = pygui.Button(self.main_controls_frame, text="Stand", command=self.stand)
-    self.hit_btn = pygui.Button(self.main_controls_frame, text="Hit", command=self.hit)
+    self.main_gui_items['canvas_player'] = pygui.Canvas(self.main_gui_items['main_client_frame'], width=500, height=250)
+    self.main_gui_items['canvas_computer'] = pygui.Canvas(self.main_gui_items['main_server_frame'],
+                                                          width=500,
+                                                          height=250)
+
+    self.main_gui_items['stand_btn'] = pygui.Button(self.main_gui_items['main_controls_frame'],
+                                                    text="Stand",
+                                                    command=self.stand)
+
+    self.main_gui_items['hit_btn'] = pygui.Button(self.main_gui_items['main_controls_frame'],
+                                                  text="Hit",
+                                                  command=self.hit)
     # [Main GUI Init] ::end
 
   def bootstrap(self):
@@ -95,54 +116,54 @@ class Window(object):
   def switch_context(self, context):
     if context == 'main':
       # hide the splash page
-      self.splash_frame.pack_forget()
+      self.splash_gui_items['splash_frame'].pack_forget()
 
       # Show the frame for the game
       self.main_gui()
     else:
       # hide the game
-      self.main_frame.pack_forget()
+      self.main_gui_items['main_frame'].pack_forget()
 
       # Show the splash page.
       self.splash_gui()
 
   def splash_gui(self):
     if self.splash_bootstrapped is False:
-      self.splash_logo_canvas.create_image(0, 0, image=self.window.splash_img, anchor=pygui.NW)
-      self.splash_logo_canvas.pack()
+      self.splash_gui_items['splash_logo_canvas'].create_image(0, 0, image=self.window.splash_img, anchor=pygui.NW)
+      self.splash_gui_items['splash_logo_canvas'].pack()
 
       # position the start button
-      self.start_btn.pack()
+      self.splash_gui_items['start_btn'].pack()
 
       # set the bootstrap flag to true
       self.splash_bootstrapped = True
 
-    self.splash_frame.pack(padx=10, pady=25)
+    self.splash_gui_items['splash_frame'].pack(padx=10, pady=25)
 
   def main_gui(self):
     # [client canvas logic] ::start
-    self.label_client.pack(side=pygui.LEFT)
-    self.canvas_player.pack(side=pygui.RIGHT)
-    self.main_client_frame.pack(padx=10, pady=10)
+    self.main_gui_items['label_client'].pack(side=pygui.LEFT)
+    self.main_gui_items['canvas_player'].pack(side=pygui.RIGHT)
+    self.main_gui_items['main_client_frame'].pack(padx=10, pady=10)
     # [client canvas logic] ::end
 
     # [server canvas logic] ::start
-    self.label_computer.pack(side=pygui.LEFT)
-    self.canvas_computer.pack(side=pygui.RIGHT)
-    self.main_server_frame.pack(padx=10, pady=10)
+    self.main_gui_items['label_computer'].pack(side=pygui.LEFT)
+    self.main_gui_items['canvas_computer'].pack(side=pygui.RIGHT)
+    self.main_gui_items['main_server_frame'].pack(padx=10, pady=10)
     # [server canvas logic] ::end
 
     # [controls] ::start
-    self.stand_btn.grid(row=0, column=1)
-    self.hit_btn.grid(row=0, column=0)
+    self.main_gui_items['stand_btn'].grid(row=0, column=1)
+    self.main_gui_items['hit_btn'].grid(row=0, column=0)
 
-    self.main_controls_frame.pack(padx=10, pady=10)
+    self.main_gui_items['main_controls_frame'].pack(padx=10, pady=10)
     # [controls] ::end
 
     # start the game session
     self.init_game_session()
 
-    self.main_frame.pack()
+    self.main_gui_items['main_frame'].pack()
 
   def init_game_session(self):
     remaining_cards = self.game_deck.get_remaining_cards()
@@ -155,17 +176,17 @@ class Window(object):
     # clean up old session if existing
     if len(self.client_cards) > 0:
       # destroy all canvas instances
-      self.clean_player_cards(self.client_cards, self.canvas_player)
+      self.clean_player_cards(self.client_cards, self.main_gui_items['canvas_player'])
 
       # show the score of the client
-      self.reflect_score(self.label_client, "You", 0)
+      self.reflect_score(self.main_gui_items['label_client'], "You", 0)
 
     if len(self.server_cards) > 0:
       # remove the reference to the hidden card
-      self.clean_player_cards(self.server_cards, self.canvas_computer)
+      self.clean_player_cards(self.server_cards, self.main_gui_items['canvas_computer'])
 
       # show the score of the client
-      self.reflect_score(self.label_computer, "Computer", 0)
+      self.reflect_score(self.main_gui_items['label_computer'], "Computer", 0)
 
     # start new session
     try:
@@ -176,19 +197,19 @@ class Window(object):
       print("".join(PyroExceptionTraceback()))
 
     # load the client's cards
-    self.load_cards(player_client, self.client_cards, self.canvas_player)
+    self.load_cards(player_client, self.client_cards, self.main_gui_items['canvas_player'])
 
     # show the score of the client
-    self.reflect_score(self.label_client, "You", self.get_card_total(self.client_cards))
+    self.reflect_score(self.main_gui_items['label_client'], "You", self.get_card_total(self.client_cards))
 
     # load the server's cards
-    self.load_cards(player_server, self.server_cards, self.canvas_computer, True)
+    self.load_cards(player_server, self.server_cards, self.main_gui_items['canvas_computer'], True)
 
     # get the first card since we only need to display the initial score of the server/dealer
     first_card = self.server_cards[0]
 
     # show the initial score of the computer
-    self.reflect_score(self.label_computer, "Computer", self.get_card_total([first_card]))
+    self.reflect_score(self.main_gui_items['label_computer'], "Computer", self.get_card_total([first_card]))
 
   def reflect_score(self, label, player_type, score):
     label.configure(text="%s: %d" % (player_type, score))
@@ -212,10 +233,10 @@ class Window(object):
       print("".join(PyroExceptionTraceback()))
 
     # load the player's cards
-    self.load_cards(newcard, self.client_cards, self.canvas_player)
+    self.load_cards(newcard, self.client_cards, self.main_gui_items['canvas_player'])
 
     # show the new score for the client
-    self.reflect_score(self.label_client, "You", self.get_card_total(self.client_cards))
+    self.reflect_score(self.main_gui_items['label_client'], "You", self.get_card_total(self.client_cards))
 
     # call `self.stand()` when the card total is greater than or equal to 21
     if self.get_card_total(self.client_cards) >= self.winning_number:
@@ -225,7 +246,7 @@ class Window(object):
     hidden_card = self.server_hidden_card['text']
 
     # reveal the hidden card
-    self.canvas_computer.itemconfig(self.server_hidden_card['canvas_img'],
+    self.main_gui_items['canvas_computer'].itemconfig(self.server_hidden_card['canvas_img'],
                                     image=self.window.card_cache[hidden_card]['tk_img'])
 
     # locally copy the list
@@ -249,10 +270,10 @@ class Window(object):
       })
 
     # load the player's cards
-    self.load_cards(server_new_cards, self.server_cards, self.canvas_computer)
+    self.load_cards(server_new_cards, self.server_cards, self.main_gui_items['canvas_computer'])
 
     # show the score of the computer
-    self.reflect_score(self.label_computer, "Computer", self.get_card_total(self.server_cards))
+    self.reflect_score(self.main_gui_items['label_computer'], "Computer", self.get_card_total(self.server_cards))
 
     client_difference = self.winning_number - self.get_card_total(self.client_cards)
     server_difference = self.winning_number - self.get_card_total(self.server_cards)
