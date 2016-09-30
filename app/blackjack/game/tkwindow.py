@@ -75,9 +75,6 @@ class Window(object):
     self.main_gui_items['main_server_frame'] = pygui.Frame(self.main_gui_items['main_frame'])
     self.main_gui_items['main_controls_frame'] = pygui.Frame(self.main_gui_items['main_frame'])
 
-    self.main_gui_items['label_client'] = pygui.Label(self.main_gui_items['main_client_frame'], text="You")
-    self.main_gui_items['label_computer'] = pygui.Label(self.main_gui_items['main_server_frame'], text="Computer")
-
     self.main_gui_items['canvas_player'] = pygui.Canvas(self.main_gui_items['main_client_frame'], width=500, height=250)
     self.main_gui_items['canvas_computer'] = pygui.Canvas(self.main_gui_items['main_server_frame'],
                                                           width=500,
@@ -142,13 +139,17 @@ class Window(object):
 
   def main_gui(self):
     # [client canvas logic] ::start
-    self.main_gui_items['label_client'].pack(side=pygui.LEFT)
+    self.main_gui_items['label_client'] = self.main_gui_items['canvas_player'].create_text(10, 0, anchor=pygui.NW)
+    self.main_gui_items['canvas_player'].itemconfig(self.main_gui_items['label_client'], text="You: 0")
+
     self.main_gui_items['canvas_player'].pack(side=pygui.RIGHT)
     self.main_gui_items['main_client_frame'].pack(padx=10, pady=10)
     # [client canvas logic] ::end
 
     # [server canvas logic] ::start
-    self.main_gui_items['label_computer'].pack(side=pygui.LEFT)
+    self.main_gui_items['label_computer'] = self.main_gui_items['canvas_computer'].create_text(10, 0, anchor=pygui.NW)
+    self.main_gui_items['canvas_computer'].itemconfig(self.main_gui_items['label_computer'], text="Computer: 0")
+
     self.main_gui_items['canvas_computer'].pack(side=pygui.RIGHT)
     self.main_gui_items['main_server_frame'].pack(padx=10, pady=10)
     # [server canvas logic] ::end
@@ -179,14 +180,14 @@ class Window(object):
       self.clean_player_cards(self.client_cards, self.main_gui_items['canvas_player'])
 
       # show the score of the client
-      self.reflect_score(self.main_gui_items['label_client'], "You", 0)
+      self.reflect_score(self.main_gui_items['canvas_player'], self.main_gui_items['label_client'], "You", 0)
 
     if len(self.server_cards) > 0:
       # remove the reference to the hidden card
       self.clean_player_cards(self.server_cards, self.main_gui_items['canvas_computer'])
 
       # show the score of the client
-      self.reflect_score(self.main_gui_items['label_computer'], "Computer", 0)
+      self.reflect_score(self.main_gui_items['canvas_computer'], self.main_gui_items['label_computer'], "Computer", 0)
 
     # start new session
     try:
@@ -200,7 +201,7 @@ class Window(object):
     self.load_cards(player_client, self.client_cards, self.main_gui_items['canvas_player'])
 
     # show the score of the client
-    self.reflect_score(self.main_gui_items['label_client'], "You", self.get_card_total(self.client_cards))
+    self.reflect_score(self.main_gui_items['canvas_player'], self.main_gui_items['label_client'], "You", self.get_card_total(self.client_cards))
 
     # load the server's cards
     self.load_cards(player_server, self.server_cards, self.main_gui_items['canvas_computer'], True)
@@ -209,10 +210,10 @@ class Window(object):
     first_card = self.server_cards[0]
 
     # show the initial score of the computer
-    self.reflect_score(self.main_gui_items['label_computer'], "Computer", self.get_card_total([first_card]))
+    self.reflect_score(self.main_gui_items['canvas_computer'], self.main_gui_items['label_computer'], "Computer", self.get_card_total([first_card]))
 
-  def reflect_score(self, label, player_type, score):
-    label.configure(text="%s: %d" % (player_type, score))
+  def reflect_score(self, canvas, label, player_type, score):
+    canvas.itemconfig(label, text="%s: %d" % (player_type, score))
 
   def hit(self):
     card_total = self.get_card_total(self.client_cards)
@@ -236,7 +237,7 @@ class Window(object):
     self.load_cards(newcard, self.client_cards, self.main_gui_items['canvas_player'])
 
     # show the new score for the client
-    self.reflect_score(self.main_gui_items['label_client'], "You", self.get_card_total(self.client_cards))
+    self.reflect_score(self.main_gui_items['canvas_player'], self.main_gui_items['label_client'], "You", self.get_card_total(self.client_cards))
 
     # call `self.stand()` when the card total is greater than or equal to 21
     if self.get_card_total(self.client_cards) >= self.winning_number:
@@ -247,7 +248,7 @@ class Window(object):
 
     # reveal the hidden card
     self.main_gui_items['canvas_computer'].itemconfig(self.server_hidden_card['canvas_img'],
-                                    image=self.window.card_cache[hidden_card]['tk_img'])
+                                                      image=self.window.card_cache[hidden_card]['tk_img'])
 
     # locally copy the list
     server_cards = self.server_cards[:]
@@ -273,7 +274,7 @@ class Window(object):
     self.load_cards(server_new_cards, self.server_cards, self.main_gui_items['canvas_computer'])
 
     # show the score of the computer
-    self.reflect_score(self.main_gui_items['label_computer'], "Computer", self.get_card_total(self.server_cards))
+    self.reflect_score(self.main_gui_items['canvas_computer'], self.main_gui_items['label_computer'], "Computer", self.get_card_total(self.server_cards))
 
     client_difference = self.winning_number - self.get_card_total(self.client_cards)
     server_difference = self.winning_number - self.get_card_total(self.server_cards)
@@ -324,7 +325,7 @@ class Window(object):
 
       # draw image on the canvas
       img_item = canvas.create_image((new_idx * (CARD_WIDTH + 2)),
-                                     0,
+                                     20,
                                      image=resolved_cache_item['tk_img'],
                                      anchor=pygui.NW)
 
