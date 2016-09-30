@@ -201,7 +201,10 @@ class Window(object):
     self.load_cards(player_client, self.client_cards, self.main_gui_items['canvas_player'])
 
     # show the score of the client
-    self.reflect_score(self.main_gui_items['canvas_player'], self.main_gui_items['label_client'], "You", self.get_card_total(self.client_cards))
+    self.reflect_score(self.main_gui_items['canvas_player'],
+                       self.main_gui_items['label_client'],
+                       "You",
+                       self.get_card_total(self.client_cards))
 
     # load the server's cards
     self.load_cards(player_server, self.server_cards, self.main_gui_items['canvas_computer'], True)
@@ -210,7 +213,10 @@ class Window(object):
     first_card = self.server_cards[0]
 
     # show the initial score of the computer
-    self.reflect_score(self.main_gui_items['canvas_computer'], self.main_gui_items['label_computer'], "Computer", self.get_card_total([first_card]))
+    self.reflect_score(self.main_gui_items['canvas_computer'],
+                       self.main_gui_items['label_computer'],
+                       "Computer",
+                       self.get_card_total([first_card]))
 
   def reflect_score(self, canvas, label, player_type, score):
     canvas.itemconfig(label, text="%s: %d" % (player_type, score))
@@ -237,7 +243,10 @@ class Window(object):
     self.load_cards(newcard, self.client_cards, self.main_gui_items['canvas_player'])
 
     # show the new score for the client
-    self.reflect_score(self.main_gui_items['canvas_player'], self.main_gui_items['label_client'], "You", self.get_card_total(self.client_cards))
+    self.reflect_score(self.main_gui_items['canvas_player'],
+                       self.main_gui_items['label_client'],
+                       "You",
+                       self.get_card_total(self.client_cards))
 
     # call `self.stand()` when the card total is greater than or equal to 21
     if self.get_card_total(self.client_cards) >= self.winning_number:
@@ -274,7 +283,10 @@ class Window(object):
     self.load_cards(server_new_cards, self.server_cards, self.main_gui_items['canvas_computer'])
 
     # show the score of the computer
-    self.reflect_score(self.main_gui_items['canvas_computer'], self.main_gui_items['label_computer'], "Computer", self.get_card_total(self.server_cards))
+    self.reflect_score(self.main_gui_items['canvas_computer'],
+                       self.main_gui_items['label_computer'],
+                       "Computer",
+                       self.get_card_total(self.server_cards))
 
     client_difference = self.winning_number - self.get_card_total(self.client_cards)
     server_difference = self.winning_number - self.get_card_total(self.server_cards)
