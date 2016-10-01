@@ -105,57 +105,61 @@ class Window(object):
       self.splash_gui()
 
   def main_gui(self):
-    player_uids = self.game_manager.get_player_uids()
+    try:
+      player_uids = self.game_manager.get_player_uids()
 
-    # base frame for the game window
-    self.main_gui_items['main_frame'] = pygui.Frame(self.window)
+      # base frame for the game window
+      self.main_gui_items['main_frame'] = pygui.Frame(self.window)
 
-    for player_uid in player_uids:
-      frame_key = "player_frame_%s" % player_uid
-      canvas_key = "player_canvas_%s" % player_uid
-      label_key = "player_label_%s" % player_uid
+      for player_uid in player_uids:
+        frame_key = "player_frame_%s" % player_uid
+        canvas_key = "player_canvas_%s" % player_uid
+        label_key = "player_label_%s" % player_uid
 
-      # strip the UID from the other player
-      if player_uid != self.game_storage['connection_uid']:
-        label_text = "%s: %d" % (strip_uid(player_uid), 0)
-      else:
-        label_text = "%s: %d" % ("You", 0)
+        # strip the UID from the other player
+        if player_uid != self.game_storage['connection_uid']:
+          label_text = "%s: %d" % (strip_uid(player_uid), 0)
+        else:
+          label_text = "%s: %d" % ("You", 0)
 
-      # create frame for each player
-      self.main_gui_items[frame_key] = pygui.Frame(self.main_gui_items['main_frame'])
-      self.main_gui_items[frame_key].pack(padx=10, pady=10)
+        # create frame for each player
+        self.main_gui_items[frame_key] = pygui.Frame(self.main_gui_items['main_frame'])
+        self.main_gui_items[frame_key].pack(padx=10, pady=10)
 
-      # create canvas
-      self.main_gui_items[canvas_key] = pygui.Canvas(self.main_gui_items[frame_key], width=500, height=250)
-      self.main_gui_items[canvas_key].pack()
+        # create canvas
+        self.main_gui_items[canvas_key] = pygui.Canvas(self.main_gui_items[frame_key], width=500, height=250)
+        self.main_gui_items[canvas_key].pack()
 
-      # make label
-      self.main_gui_items[label_key] = self.main_gui_items[canvas_key].create_text(10, 0, anchor=pygui.NW)
-      self.main_gui_items[canvas_key].itemconfig(self.main_gui_items[label_key], text=label_text)
+        # make label
+        self.main_gui_items[label_key] = self.main_gui_items[canvas_key].create_text(10, 0, anchor=pygui.NW)
+        self.main_gui_items[canvas_key].itemconfig(self.main_gui_items[label_key], text=label_text)
 
-    # [Controls] ::start
-    self.main_gui_items['main_controls_frame'] = pygui.Frame(self.main_gui_items['main_frame'])
+      # [Controls] ::start
+      self.main_gui_items['main_controls_frame'] = pygui.Frame(self.main_gui_items['main_frame'])
 
-    self.main_gui_items['stand_btn'] = pygui.Button(self.main_gui_items['main_controls_frame'],
-                                                    text="Stand",
-                                                    command=self.stand)
+      self.main_gui_items['stand_btn'] = pygui.Button(self.main_gui_items['main_controls_frame'],
+                                                      text="Stand",
+                                                      command=self.stand)
 
-    self.main_gui_items['stand_btn'].grid(row=0, column=1)
+      self.main_gui_items['stand_btn'].grid(row=0, column=1)
 
-    self.main_gui_items['hit_btn'] = pygui.Button(self.main_gui_items['main_controls_frame'],
-                                                  text="Hit",
-                                                  command=self.hit)
+      self.main_gui_items['hit_btn'] = pygui.Button(self.main_gui_items['main_controls_frame'],
+                                                    text="Hit",
+                                                    command=self.hit)
 
-    self.main_gui_items['hit_btn'].grid(row=0, column=0)
+      self.main_gui_items['hit_btn'].grid(row=0, column=0)
 
-    self.main_gui_items['main_controls_frame'].pack(padx=10, pady=10)
-    # [Controls] ::end
+      self.main_gui_items['main_controls_frame'].pack(padx=10, pady=10)
+      # [Controls] ::end
 
-    # show the base frame
-    self.main_gui_items['main_frame'].pack()
+      # show the base frame
+      self.main_gui_items['main_frame'].pack()
 
-    # start the game session
-    self.init_game_session()
+      # start the game session
+      self.init_game_session()
+    except SerializeError:
+      print("Pyro traceback:")
+      print("".join(PyroExceptionTraceback()))
 
   def splash_gui(self):
     if self.splash_bootstrapped is False:
@@ -186,50 +190,54 @@ class Window(object):
     self.splash_gui_items['splash_frame'].pack(padx=10, pady=25)
 
   def init_game_session(self):
-    # initialize cards on hand of all players
-    player_uids = self.game_manager.get_player_uids()
+    try:
+      # initialize cards on hand of all players
+      player_uids = self.game_manager.get_player_uids()
 
-    for player_uid in player_uids:
-      on_hand_key = "cards_on_hand_%s" % player_uid
-      self.game_storage[on_hand_key] = []
+      for player_uid in player_uids:
+        on_hand_key = "cards_on_hand_%s" % player_uid
+        self.game_storage[on_hand_key] = []
 
-    drawn_cards = self.game_manager.draw_cards(self.game_storage['connection_uid'], 2)
+      drawn_cards = self.game_manager.draw_cards(self.game_storage['connection_uid'], 2)
 
-    # resolve the canvas id
-    canvas_id = "player_canvas_%s" % self.game_storage['connection_uid']
-    current_player_on_hand_key = "cards_on_hand_%s" % self.game_storage['connection_uid']
+      # resolve the canvas id
+      canvas_id = "player_canvas_%s" % self.game_storage['connection_uid']
+      current_player_on_hand_key = "cards_on_hand_%s" % self.game_storage['connection_uid']
 
-    # load the cards on the player canvas
-    self.load_cards(drawn_cards, self.game_storage[current_player_on_hand_key], self.main_gui_items[canvas_id])
+      # load the cards on the player canvas
+      self.load_cards(drawn_cards, self.game_storage[current_player_on_hand_key], self.main_gui_items[canvas_id])
 
-    # resolve the label key
-    label_key = "player_label_%s" % self.game_storage['connection_uid']
+      # resolve the label key
+      label_key = "player_label_%s" % self.game_storage['connection_uid']
 
-    # get the total of the draw cards
-    initial_score = self.game_manager.get_player_card_total(self.game_storage['connection_uid'])
+      # get the total of the draw cards
+      initial_score = self.game_manager.get_player_card_total(self.game_storage['connection_uid'])
 
-    # show the new score on the canvas
-    self.reflect_score(self.main_gui_items[canvas_id], self.main_gui_items[label_key], "You", initial_score)
+      # show the new score on the canvas
+      self.reflect_score(self.main_gui_items[canvas_id], self.main_gui_items[label_key], "You", initial_score)
 
-    # TODO: delete this after waiting for other players
-    # run thread for listening to others on hand
-    self.game_threads['on_hand_listener'] = {}
+      # TODO: delete this after waiting for other players
+      # run thread for listening to others on hand
+      self.game_threads['on_hand_listener'] = {}
 
-    self.game_threads['on_hand_listener']['evt'] = threading.Event()
-    self.game_threads['on_hand_listener']['thread'] = threading.Thread(
-      name="on_hand_listener_thread",
-      target=self.draw_player_cards,
-      args=(self.game_threads['on_hand_listener']['evt'], self.game_manager, ),
-      kwargs={
-        'on_hand': self.draw_other_cards,
-        'excluded_uids': [
-          self.game_storage['connection_uid']
-        ]
-      }
-    )
+      self.game_threads['on_hand_listener']['evt'] = threading.Event()
+      self.game_threads['on_hand_listener']['thread'] = threading.Thread(
+        name="on_hand_listener_thread",
+        target=self.draw_player_cards,
+        args=(self.game_threads['on_hand_listener']['evt'], self.game_manager, ),
+        kwargs={
+          'on_hand': self.draw_other_cards,
+          'excluded_uids': [
+            self.game_storage['connection_uid']
+          ]
+        }
+      )
 
-    # start the listener thread
-    self.game_threads['on_hand_listener']['thread'].start()
+      # start the listener thread
+      self.game_threads['on_hand_listener']['thread'].start()
+    except SerializeError:
+      print("Pyro traceback:")
+      print("".join(PyroExceptionTraceback()))
 
   def toggle_name_input(self, hide=False):
     if hide is True:
@@ -308,23 +316,27 @@ class Window(object):
       print("".join(PyroExceptionTraceback()))
 
   def disconnect(self, force=False):
-    # disconnect to the server
-    self.game_manager.disconnect(self.game_storage['connection_uid'])
+    try:
+      # disconnect to the server
+      self.game_manager.disconnect(self.game_storage['connection_uid'])
 
-    if force is True:
-      self.toggle_name_input(False)
+      if force is True:
+        self.toggle_name_input(False)
 
-      # show message when there are not enough players connected
-      messagebox.showerror(self.window_title, "Not enough players to connected to the server.")
-    else:
-      # implement switching from main gui to splash gui
-      pass
+        # show message when there are not enough players connected
+        messagebox.showerror(self.window_title, "Not enough players to connected to the server.")
+      else:
+        # implement switching from main gui to splash gui
+        pass
 
-    # delete the connection UID
-    del self.game_storage['connection_uid']
+      # delete the connection UID
+      del self.game_storage['connection_uid']
 
-    # delete the name
-    del self.game_storage['current_name']
+      # delete the name
+      del self.game_storage['current_name']
+    except SerializeError:
+      print("Pyro traceback:")
+      print("".join(PyroExceptionTraceback()))
 
   def draw_other_cards(self, identifier, cards):
     # resolve the canvas id
@@ -339,7 +351,13 @@ class Window(object):
       label_key = "player_label_%s" % identifier
 
       # get the total of the draw cards
-      initial_score = self.game_manager.get_player_card_total(identifier, True)
+      initial_score = 0
+
+      try:
+        initial_score = self.game_manager.get_player_card_total(identifier, True)
+      except SerializeError:
+        print("Pyro traceback:")
+        print("".join(PyroExceptionTraceback()))
 
       # show the new score on the canvas
       self.reflect_score(self.main_gui_items[canvas_id], self.main_gui_items[label_key], strip_uid(identifier), initial_score)
