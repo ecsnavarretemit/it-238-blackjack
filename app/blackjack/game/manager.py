@@ -24,6 +24,7 @@ class State(object):
     self.socket = socket
 
 # TODO: implement cleanup of data and game restart
+# TODO: implement logic for incrementing 'games_played', 'total_wins' and 'total_losses'
 @Pyro4.expose
 class Manager(object):
 
@@ -54,6 +55,7 @@ class Manager(object):
     self.deck.shuffle()
 
   # TODO: throw error when number_of_cards is less than 1
+  # TODO: implement card refresh when the number of remaining cards in the deck is less than 10
   def draw_cards(self, identifier, number_of_cards=2):
     drawn_cards = []
 

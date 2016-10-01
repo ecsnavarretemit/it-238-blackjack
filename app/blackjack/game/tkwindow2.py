@@ -23,7 +23,7 @@ from Pyro4.util import getPyroTraceback as PyroExceptionTraceback, excepthook as
 # add hooks to exception hooks
 sys.excepthook = PyroExceptHook
 
-# TODO: implement cleanup of threads and data and game restart
+# TODO: implement cleanup of threads and data storage and game restart
 class Window(object):
 
   def __init__(self, window_title="BlackJack"):
@@ -141,6 +141,7 @@ class Window(object):
       print("Pyro traceback:")
       print("".join(PyroExceptionTraceback()))
 
+  # TODO: reveal cards before showing popup message
   def declare_winners(self, response):
     winner_message = "Player: %s has won the round with the score of %d!"
     status = ""
@@ -158,8 +159,6 @@ class Window(object):
       status = winner_message
     else:
       pass
-
-    print(response)
 
     # show a prompt to start a new game.
     answer = messagebox.askokcancel(self.window_title, "%s Want to start a new game?" % status)
@@ -382,6 +381,7 @@ class Window(object):
       print("Pyro traceback:")
       print("".join(PyroExceptionTraceback()))
 
+  # TODO: implement game disconnection when inside the game
   def disconnect(self, force=False):
     try:
       # disconnect to the server
