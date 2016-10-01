@@ -11,6 +11,7 @@ import threading
 import tkinter as pygui
 from tkinter import messagebox
 from PIL import Image, ImageTk
+from app.helpers import strip_uid
 from app.cards.transformer import CardToCardImagePositionTransformer, BLANK_COORDS, CARD_WIDTH
 from app.blackjack.game.error import GameError
 from app.blackjack.cards.transformer import TextToCardTransformer
@@ -81,6 +82,12 @@ class Window(object):
     # Start the GUI
     self.window.mainloop()
 
+  def hit(self):
+    pass
+
+  def stand(self):
+    pass
+
   def switch_context(self, context):
     if context == 'main':
       # hide the splash page
@@ -98,7 +105,54 @@ class Window(object):
       self.splash_gui()
 
   def main_gui(self):
-    pass
+    player_uids = self.game_manager.get_player_uids()
+
+    # base frame for the game window
+    self.main_gui_items['main_frame'] = pygui.Frame(self.window)
+
+    for player_uid in player_uids:
+      frame_key = "player_frame_%s" % player_uid
+      canvas_key = "player_canvas_%s" % player_uid
+      label_key = "player_label_%s" % player_uid
+
+      # strip the UID from the other player
+      if player_uid != self.game_storage['connection_uid']:
+        label_text = "%s: %d" % (strip_uid(player_uid), 0)
+      else:
+        label_text = "%s: %d" % ("You", 0)
+
+      # create frame for each player
+      self.main_gui_items[frame_key] = pygui.Frame(self.main_gui_items['main_frame'])
+      self.main_gui_items[frame_key].pack(padx=10, pady=10)
+
+      # create canvas
+      self.main_gui_items[canvas_key] = pygui.Canvas(self.main_gui_items[frame_key], width=500, height=250)
+      self.main_gui_items[canvas_key].pack()
+
+      # make label
+      self.main_gui_items[label_key] = self.main_gui_items[canvas_key].create_text(10, 0, anchor=pygui.NW)
+      self.main_gui_items[canvas_key].itemconfig(self.main_gui_items[label_key], text=label_text)
+
+    # [Controls] ::start
+    self.main_gui_items['main_controls_frame'] = pygui.Frame(self.main_gui_items['main_frame'])
+
+    self.main_gui_items['stand_btn'] = pygui.Button(self.main_gui_items['main_controls_frame'],
+                                                    text="Stand",
+                                                    command=self.stand)
+
+    self.main_gui_items['stand_btn'].grid(row=0, column=1)
+
+    self.main_gui_items['hit_btn'] = pygui.Button(self.main_gui_items['main_controls_frame'],
+                                                  text="Hit",
+                                                  command=self.hit)
+
+    self.main_gui_items['hit_btn'].grid(row=0, column=0)
+
+    self.main_gui_items['main_controls_frame'].pack(padx=10, pady=10)
+    # [Controls] ::end
+
+    # show the base frame
+    self.main_gui_items['main_frame'].pack()
 
   def splash_gui(self):
     if self.splash_bootstrapped is False:
