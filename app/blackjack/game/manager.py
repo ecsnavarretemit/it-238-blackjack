@@ -127,7 +127,7 @@ class Manager(object):
 
   def connect(self, name):
     if self.room_locked is True:
-      print("Player: %s is trying to connect a locked game.")
+      print("Player: %s is trying to connect a locked game." % name)
       return False
 
     key = name + ':uid-' + rand_uid(10)
