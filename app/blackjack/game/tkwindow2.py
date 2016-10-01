@@ -64,9 +64,9 @@ class Window(object):
 
   def bootstrap(self):
     if self.game_manager is None:
-      print("No custom deck connection provided. Establishing connection with default parameters.")
+      print("No custom game manager connection provided. Establishing connection with default parameters.")
 
-      self.game_manager = PyroProxy("PYRO:standard.deck@localhost:3000")
+      self.game_manager = PyroProxy("PYRO:standard.manager@localhost:3000")
 
     # set window title
     self.window.wm_title(self.window_title)
