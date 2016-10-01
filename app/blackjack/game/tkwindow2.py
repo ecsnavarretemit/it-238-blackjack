@@ -178,7 +178,7 @@ class Window(object):
         target=self.check_if_ready,
         args=(self.game_threads['wait_for_players']['evt'], self.game_manager, ),
         kwargs={
-          'on_room_destroyed': lambda: self.toggle_name_input(True),
+          'on_room_destroyed': lambda: self.disconnect(True),
           'on_room_completed': lambda: self.switch_context('main')
         }
       )
@@ -192,6 +192,19 @@ class Window(object):
       # show trace to the client
       print("Pyro traceback:")
       print("".join(PyroExceptionTraceback()))
+
+  def disconnect(self, force=False):
+    # disconnect to the server
+    self.game_manager.disconnect(self.game_storage['connection_uid'])
+
+    if force is True:
+      self.toggle_name_input(False)
+
+      # show message when there are not enough players connected
+      messagebox.showerror(self.window_title, "Not enough players to connected to the server.")
+    else:
+      # implement switching from main gui to splash gui
+      pass
 
   def assemble_card_cache(self):
     tmp_deck = SerializableDeck()
