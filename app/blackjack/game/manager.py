@@ -35,6 +35,9 @@ class Manager(object):
     # boolean to determine whether a game is on going or not
     self.room_locked = False
 
+    # create the game deck
+    self.init_deck()
+
   def get_states(self):
     return self.states
 
@@ -45,8 +48,21 @@ class Manager(object):
     # shuffle the deck
     self.deck.shuffle()
 
-  def draw_cards(self, number_of_cards=2):
-    return self.deck.pluck(number_of_cards)
+  # TODO: throw error when number_of_cards is less than 1
+  def draw_cards(self, identifier, number_of_cards=2):
+    drawn_cards = self.deck.pluck(number_of_cards)
+
+    if identifier in self.states and not 'cards_on_hand' in self.states[identifier]:
+      self.states[identifier]['cards_on_hand'] = []
+
+    if identifier in self.states:
+      for card in drawn_cards:
+        self.states[identifier]['cards_on_hand'].append(card)
+
+      print("Drawn card. State of %s modified" % identifier)
+      print(self.states[identifier])
+
+    return drawn_cards
 
   def lock_game(self, lock=True):
     self.room_locked = lock

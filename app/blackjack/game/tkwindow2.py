@@ -154,6 +154,9 @@ class Window(object):
     # show the base frame
     self.main_gui_items['main_frame'].pack()
 
+    # start the game session
+    self.init_game_session()
+
   def splash_gui(self):
     if self.splash_bootstrapped is False:
       # store elements in the dictionary
@@ -181,6 +184,25 @@ class Window(object):
       self.splash_bootstrapped = True
 
     self.splash_gui_items['splash_frame'].pack(padx=10, pady=25)
+
+  def init_game_session(self):
+    # initialize cards on hand of all players
+    player_uids = self.game_manager.get_player_uids()
+
+    for player_uid in player_uids:
+      on_hand_key = "cards_on_hand_%s" % player_uid
+      self.game_storage[on_hand_key] = []
+
+    drawn_cards = self.game_manager.draw_cards(self.game_storage['connection_uid'], 2)
+
+    # resolve the canvas id
+    canvas_id = "player_canvas_%s" % self.game_storage['connection_uid']
+    current_player_on_hand_key = "cards_on_hand_%s" % self.game_storage['connection_uid']
+
+    # load the cards on the player canvas
+    self.load_cards(drawn_cards, self.game_storage[current_player_on_hand_key], self.main_gui_items[canvas_id])
+
+    # run thread for listening to others on hand
 
   def toggle_name_input(self, hide=False):
     if hide is True:
@@ -272,6 +294,52 @@ class Window(object):
 
     # delete the name
     del self.game_storage['current_name']
+
+  def load_cards(self, cards, card_collection, canvas, has_hidden_card=False):
+    num_cards = len(cards)
+
+    # if card cache is empty populate it
+    if not self.window.card_cache:
+      self.assemble_card_cache()
+
+    # get the starting index to prevent placing card over another
+    start_idx = len(card_collection)
+
+    for index, card_text in enumerate(cards):
+      resolved_cache_item = None
+      is_hidden = False
+      new_idx = index + start_idx
+
+      if has_hidden_card is True and new_idx == (num_cards - 1):
+        is_hidden = True
+
+        resolved_cache_item = self.window.card_cache['blank']
+
+      if resolved_cache_item is None:
+        resolved_cache_item = self.window.card_cache[card_text]
+
+         # resolve the new x_position
+      x_pos = ((new_idx * (CARD_WIDTH + 2)) + 5)
+
+      # draw image on the canvas
+      img_item = canvas.create_image(x_pos,
+                                     20,
+                                     image=resolved_cache_item['tk_img'],
+                                     anchor=pygui.NW)
+
+      # assemble card metadata
+      card_metadata = {
+        'canvas_img': img_item,
+        'text': card_text,
+        'orig_coords': self.window.card_cache[card_text]['coords'],
+        'is_hidden': is_hidden
+      }
+
+      # # store the hidden card
+      # if is_hidden:
+      #   self.server_hidden_card = card_metadata
+
+      card_collection.append(card_metadata)
 
   def assemble_card_cache(self):
     tmp_deck = SerializableDeck()
