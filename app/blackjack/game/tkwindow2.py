@@ -202,6 +202,15 @@ class Window(object):
     # load the cards on the player canvas
     self.load_cards(drawn_cards, self.game_storage[current_player_on_hand_key], self.main_gui_items[canvas_id])
 
+    # resolve the label key
+    label_key = "player_label_%s" % self.game_storage['connection_uid']
+
+    # get the total of the draw cards
+    initial_score = self.game_manager.get_player_card_total(self.game_storage['connection_uid'])
+
+    # show the new score on the canvas
+    self.reflect_score(self.main_gui_items[canvas_id], self.main_gui_items[label_key], "You", initial_score)
+
     # TODO: delete this after waiting for other players
     # run thread for listening to others on hand
     self.game_threads['on_hand_listener'] = {}
@@ -234,6 +243,9 @@ class Window(object):
 
       # Empty the input box
       self.splash_gui_items['name_input'].delete(0, pygui.END)
+
+  def reflect_score(self, canvas, label, player_name, score):
+    canvas.itemconfig(label, text="%s: %d" % (player_name, score))
 
   def connect_to_server(self):
     try:
@@ -322,6 +334,15 @@ class Window(object):
     # load the cards on the player canvas
     if player_on_hand_key in self.game_storage:
       self.load_cards(cards, self.game_storage[player_on_hand_key], self.main_gui_items[canvas_id], True)
+
+      # resolve the label key
+      label_key = "player_label_%s" % identifier
+
+      # get the total of the draw cards
+      initial_score = self.game_manager.get_player_card_total(identifier, True)
+
+      # show the new score on the canvas
+      self.reflect_score(self.main_gui_items[canvas_id], self.main_gui_items[label_key], strip_uid(identifier), initial_score)
 
     print('Drawing Complete')
 
