@@ -7,6 +7,7 @@
 import Pyro4
 from app.helpers import rand_uid
 from app.blackjack.cards.deck import SerializableDeck
+from app.blackjack.cards.transformer import TextToCardTransformer
 
 MAX_PLAYERS = 4
 
@@ -80,6 +81,43 @@ class Manager(object):
       result[identifier] = on_hand
 
     return result
+
+  def get_player_card_total(self, identifier, count_only_first=False):
+    card_total = 0
+    ace_counter = 0
+
+    if identifier in self.states:
+      card_collection = self.states[identifier]['cards_on_hand']
+
+      # extract the first card
+      if count_only_first is True and len(card_collection) > 0:
+        card_collection = [card_collection[0]]
+
+      for card in card_collection:
+        card_obj = TextToCardTransformer(card).transform()
+        card_value = card_obj.get_normalized_value()
+
+        # increment the ace counter if we enconter one
+        if card_obj.get_face_value() == 'A':
+          ace_counter += 1
+          continue
+
+        card_total += card_value
+
+      if card_total <= 10 and ace_counter == 1:
+        # add eleven to the card total when user has 1 ace card if the card total is less than or eq to 10
+        card_total += 11
+      elif card_total > 10 and ace_counter >= 1:
+        # add 1 for each ace the user has when the card total is greater than 10
+        card_total += ace_counter
+      elif card_total == 0 and ace_counter > 1:
+        # if the user's card consists of all aces then add set the initial total to 11
+        # and add 1 for each remaining ace card
+        card_total += (11 + (ace_counter - 1))
+      else:
+        pass
+
+    return card_total
 
   def lock_game(self, lock=True):
     self.room_locked = lock
