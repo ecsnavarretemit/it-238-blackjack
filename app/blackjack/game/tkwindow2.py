@@ -231,7 +231,7 @@ class Window(object):
       self.game_threads['on_hand_listener']['thread'] = threading.Thread(
         name="on_hand_listener_thread",
         target=self.draw_player_cards,
-        args=(self.game_threads['on_hand_listener']['evt'], self.game_manager, ),
+        args=(self.game_threads['on_hand_listener']['evt'], self.game_manager,),
         kwargs={
           'on_hand': self.draw_cards_on_canvas,
           'excluded_uids': [
@@ -305,7 +305,7 @@ class Window(object):
       self.game_threads['wait_for_players']['thread'] = threading.Thread(
         name="wait_for_players_thread",
         target=self.check_if_ready,
-        args=(self.game_threads['wait_for_players']['evt'], self.game_manager, ),
+        args=(self.game_threads['wait_for_players']['evt'], self.game_manager,),
         kwargs={
           'on_room_destroyed': lambda: self.disconnect(True),
           'on_room_completed': lambda: self.switch_context('main')
