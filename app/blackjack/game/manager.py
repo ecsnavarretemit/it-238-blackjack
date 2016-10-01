@@ -23,6 +23,7 @@ class State(object):
     # save the socket
     self.socket = socket
 
+# TODO: implement cleanup of data and game restart
 @Pyro4.expose
 class Manager(object):
 

@@ -23,6 +23,7 @@ from Pyro4.util import getPyroTraceback as PyroExceptionTraceback, excepthook as
 # add hooks to exception hooks
 sys.excepthook = PyroExceptHook
 
+# TODO: implement cleanup of threads and data and game restart
 class Window(object):
 
   def __init__(self, window_title="BlackJack"):
