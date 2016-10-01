@@ -138,6 +138,9 @@ class Window(object):
       self.splash_gui_items['name_input'].pack()
       self.splash_gui_items['start_btn'].pack()
 
+      # Empty the input box
+      self.splash_gui_items['name_input'].delete(0, pygui.END)
+
   def connect_to_server(self):
     try:
       nameval = self.splash_gui_items['name_input'].get().strip()
@@ -146,7 +149,7 @@ class Window(object):
         messagebox.showerror(self.window_title, "Please provide your name.")
         return
 
-      # save the connection uid
+      # temporarily save the connection uid
       connection_uid = self.game_manager.connect(nameval)
 
       # check if the game room is locked or not
@@ -154,7 +157,11 @@ class Window(object):
         messagebox.showerror(self.window_title, "Game already started. Cannot join a locked room.")
         return
 
+      # save the connection uid
       self.game_storage['connection_uid'] = connection_uid
+
+      # save the plain name
+      self.game_storage['current_name'] = nameval
 
       # set the player to ready status
       self.game_manager.make_ready(self.game_storage['connection_uid'])
@@ -205,6 +212,12 @@ class Window(object):
     else:
       # implement switching from main gui to splash gui
       pass
+
+    # delete the connection UID
+    del self.game_storage['connection_uid']
+
+    # delete the name
+    del self.game_storage['current_name']
 
   def assemble_card_cache(self):
     tmp_deck = SerializableDeck()
