@@ -5,7 +5,7 @@
 # Version 1.1.0
 
 import Pyro4
-from app.helpers import rand_uid
+from app.helpers import rand_uid, strip_uid
 from app.blackjack.cards.deck import SerializableDeck
 from app.blackjack.cards.transformer import TextToCardTransformer
 
@@ -36,6 +36,9 @@ class Manager(object):
     # boolean to determine whether a game is on going or not
     self.room_locked = False
 
+    # blackjack goal number
+    self.winning_number = 21
+
     # create the game deck
     self.init_deck()
 
@@ -51,7 +54,11 @@ class Manager(object):
 
   # TODO: throw error when number_of_cards is less than 1
   def draw_cards(self, identifier, number_of_cards=2):
-    drawn_cards = self.deck.pluck(number_of_cards)
+    drawn_cards = []
+
+    # do not invoke pluck when hand is locked
+    if self.states[identifier]['hand_locked'] is False:
+      drawn_cards = self.deck.pluck(number_of_cards)
 
     if identifier in self.states and not 'cards_on_hand' in self.states[identifier]:
       self.states[identifier]['cards_on_hand'] = []
@@ -119,6 +126,48 @@ class Manager(object):
 
     return card_total
 
+  def determine_winners(self):
+    is_all_locked = True
+
+    scores_dict = {}
+    for identifier, state in self.states.items():
+      if state['hand_locked'] is False:
+        is_all_locked = False
+        break
+
+      card_total = self.get_player_card_total(identifier, False)
+
+      tmp_score = self.winning_number - card_total
+
+      # store identifiers and scores which is greater than or equal to 0
+      if tmp_score >= 0:
+        scores_dict[identifier] = tmp_score
+
+    # before we determine the actual winner, all states must be hand_locked!
+    if is_all_locked is False:
+      return None
+
+    min_val = 0
+
+    if len(scores_dict) > 0:
+      min_val = min(scores_dict.values())
+
+    winners = []
+    matching_score = 0
+    for f_identifier, score in scores_dict.items():
+      if score == min_val:
+        winners.append(strip_uid(f_identifier))
+        matching_score = self.get_player_card_total(f_identifier, False)
+
+    return {
+      'winners': winners,
+      'score': matching_score
+    }
+
+  def lock_hand(self, identifier, lock=True):
+    if identifier in self.states:
+      self.states[identifier]['hand_locked'] = lock
+
   def lock_game(self, lock=True):
     self.room_locked = lock
 
@@ -174,7 +223,8 @@ class Manager(object):
       'games_played': 0,
       'total_wins': 0,
       'total_losses': 0,
-      'is_ready': False
+      'is_ready': False,
+      'hand_locked': False
     }
 
     print("joined player: %s" % key)

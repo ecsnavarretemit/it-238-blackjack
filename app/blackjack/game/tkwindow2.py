@@ -100,14 +100,73 @@ class Window(object):
 
       self.draw_cards_on_canvas(self.game_storage['connection_uid'], new_card)
 
-      # invoke stand on condition
+      # get the new card total after getting new card and rendering it in the canvas
+      card_total = self.game_manager.get_player_card_total(self.game_storage['connection_uid'])
+
+      # call `self.stand()` when the card total is greater than or equal to 21
+      if card_total >= self.winning_number:
+        self.stand()
 
     except SerializeError:
       print("Pyro traceback:")
       print("".join(PyroExceptionTraceback()))
 
   def stand(self):
-    pass
+    try:
+      # lock cards in hand to prevent any modification
+      self.game_manager.lock_hand(self.game_storage['connection_uid'], True)
+
+      # Disable hit and stand buttons
+      self.main_gui_items['stand_btn'].config(state=pygui.DISABLED)
+      self.main_gui_items['hit_btn'].config(state=pygui.DISABLED)
+
+      # TODO: delete this after waiting for other players
+      # run thread for listening to others on hand
+      self.game_threads['winner_declaration_listener'] = {}
+
+      self.game_threads['winner_declaration_listener']['evt'] = threading.Event()
+      self.game_threads['winner_declaration_listener']['thread'] = threading.Thread(
+        name="winner_declaration_listener_thread",
+        target=self.find_winners,
+        args=(self.game_threads['winner_declaration_listener']['evt'], self.game_manager,),
+        kwargs={
+          'on_identify_winners': self.declare_winners
+        }
+      )
+
+      # start the listener thread
+      self.game_threads['winner_declaration_listener']['thread'].start()
+    except SerializeError:
+      print("Pyro traceback:")
+      print("".join(PyroExceptionTraceback()))
+
+  def declare_winners(self, response):
+    winner_message = "Player: %s has won the round with the score of %d!"
+    status = ""
+
+    if 'winners' in response and len(response['winners']) >= 1:
+      if len(response['winners']) > 1:
+        winner_message = "Players: %s won the round with the score of %d!"
+
+      winners_str = ', '.join(response['winners'])
+
+      status = winner_message % (winners_str, response['score'])
+    elif 'winners' in response and len(response['winners']) == 0:
+      winner_message = "No winner!"
+
+      status = winner_message
+    else:
+      pass
+
+    print(response)
+
+    # show a prompt to start a new game.
+    answer = messagebox.askokcancel(self.window_title, "%s Want to start a new game?" % status)
+
+    # if the user answered "OK" to the question, we start a new game session
+    if answer is True:
+      pass
+      # self.init_game_session()
 
   def switch_context(self, context):
     if context == 'main':
@@ -548,5 +607,23 @@ class Window(object):
 
       if 'on_draw_complete' in kwargs and callable(kwargs['on_draw_complete']):
         kwargs['on_draw_complete']()
+
+  def find_winners(self, stop_event, game_manager, **kwargs):
+    response = []
+
+    while not stop_event.is_set():
+      response = game_manager.determine_winners()
+
+      if response is not None:
+        break
+
+    if stop_event.is_set():
+      print('Thread terminated')
+
+      if 'on_thread_terminated' in kwargs and callable(kwargs['on_thread_terminated']):
+        kwargs['on_thread_terminated']()
+    else:
+      if 'on_identify_winners' in kwargs and callable(kwargs['on_identify_winners']):
+        kwargs['on_identify_winners'](response)
 
 
