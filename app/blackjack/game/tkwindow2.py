@@ -83,7 +83,28 @@ class Window(object):
     self.window.mainloop()
 
   def hit(self):
-    pass
+    try:
+      card_total = self.game_manager.get_player_card_total(self.game_storage['connection_uid'])
+
+      # show popup box to indicate that the score is already 21 or above
+      # and succeeding call to `self.hit()` is not allowed
+      if card_total >= self.winning_number:
+        messagebox.showinfo(self.window_title,
+                            "Your card already sums up %s. Only up to %d points." %
+                            (card_total, self.winning_number))
+
+        return
+
+      # get 1 new card
+      new_card = self.game_manager.draw_cards(self.game_storage['connection_uid'], 1)
+
+      self.draw_cards_on_canvas(self.game_storage['connection_uid'], new_card)
+
+      # invoke stand on condition
+
+    except SerializeError:
+      print("Pyro traceback:")
+      print("".join(PyroExceptionTraceback()))
 
   def stand(self):
     pass
@@ -200,21 +221,7 @@ class Window(object):
 
       drawn_cards = self.game_manager.draw_cards(self.game_storage['connection_uid'], 2)
 
-      # resolve the canvas id
-      canvas_id = "player_canvas_%s" % self.game_storage['connection_uid']
-      current_player_on_hand_key = "cards_on_hand_%s" % self.game_storage['connection_uid']
-
-      # load the cards on the player canvas
-      self.load_cards(drawn_cards, self.game_storage[current_player_on_hand_key], self.main_gui_items[canvas_id])
-
-      # resolve the label key
-      label_key = "player_label_%s" % self.game_storage['connection_uid']
-
-      # get the total of the draw cards
-      initial_score = self.game_manager.get_player_card_total(self.game_storage['connection_uid'])
-
-      # show the new score on the canvas
-      self.reflect_score(self.main_gui_items[canvas_id], self.main_gui_items[label_key], "You", initial_score)
+      self.draw_cards_on_canvas(self.game_storage['connection_uid'], drawn_cards)
 
       # TODO: delete this after waiting for other players
       # run thread for listening to others on hand
@@ -226,7 +233,7 @@ class Window(object):
         target=self.draw_player_cards,
         args=(self.game_threads['on_hand_listener']['evt'], self.game_manager, ),
         kwargs={
-          'on_hand': self.draw_other_cards,
+          'on_hand': self.draw_cards_on_canvas,
           'excluded_uids': [
             self.game_storage['connection_uid']
           ]
@@ -338,14 +345,21 @@ class Window(object):
       print("Pyro traceback:")
       print("".join(PyroExceptionTraceback()))
 
-  def draw_other_cards(self, identifier, cards):
+  def draw_cards_on_canvas(self, identifier, cards):
     # resolve the canvas id
     canvas_id = "player_canvas_%s" % identifier
     player_on_hand_key = "cards_on_hand_%s" % identifier
 
+    resolved_label = "You"
+    has_hidden_card = False
+
+    if identifier != self.game_storage['connection_uid']:
+      resolved_label = strip_uid(identifier)
+      has_hidden_card = True
+
     # load the cards on the player canvas
     if player_on_hand_key in self.game_storage:
-      self.load_cards(cards, self.game_storage[player_on_hand_key], self.main_gui_items[canvas_id], True)
+      self.load_cards(cards, self.game_storage[player_on_hand_key], self.main_gui_items[canvas_id], has_hidden_card)
 
       # resolve the label key
       label_key = "player_label_%s" % identifier
@@ -354,13 +368,13 @@ class Window(object):
       initial_score = 0
 
       try:
-        initial_score = self.game_manager.get_player_card_total(identifier, True)
+        initial_score = self.game_manager.get_player_card_total(identifier, has_hidden_card)
       except SerializeError:
         print("Pyro traceback:")
         print("".join(PyroExceptionTraceback()))
 
       # show the new score on the canvas
-      self.reflect_score(self.main_gui_items[canvas_id], self.main_gui_items[label_key], strip_uid(identifier), initial_score)
+      self.reflect_score(self.main_gui_items[canvas_id], self.main_gui_items[label_key], resolved_label, initial_score)
 
     print('Drawing Complete')
 
