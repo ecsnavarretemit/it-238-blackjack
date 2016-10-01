@@ -64,6 +64,23 @@ class Manager(object):
 
     return drawn_cards
 
+  def get_player_cards(self, exclude_uids=None):
+    result = {}
+
+    for identifier, state in self.states.items():
+      # skip to the next iteration when the identifier needs to be excluded
+      if exclude_uids is not None and identifier in exclude_uids:
+        continue
+
+      on_hand = []
+
+      if 'cards_on_hand' in state:
+        on_hand = state['cards_on_hand']
+
+      result[identifier] = on_hand
+
+    return result
+
   def lock_game(self, lock=True):
     self.room_locked = lock
 
