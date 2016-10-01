@@ -202,7 +202,25 @@ class Window(object):
     # load the cards on the player canvas
     self.load_cards(drawn_cards, self.game_storage[current_player_on_hand_key], self.main_gui_items[canvas_id])
 
+    # TODO: delete this after waiting for other players
     # run thread for listening to others on hand
+    self.game_threads['on_hand_listener'] = {}
+
+    self.game_threads['on_hand_listener']['evt'] = threading.Event()
+    self.game_threads['on_hand_listener']['thread'] = threading.Thread(
+      name="on_hand_listener_thread",
+      target=self.draw_player_cards,
+      args=(self.game_threads['on_hand_listener']['evt'], self.game_manager, ),
+      kwargs={
+        'on_hand': self.draw_other_cards,
+        'excluded_uids': [
+          self.game_storage['connection_uid']
+        ]
+      }
+    )
+
+    # start the listener thread
+    self.game_threads['on_hand_listener']['thread'].start()
 
   def toggle_name_input(self, hide=False):
     if hide is True:
@@ -255,6 +273,7 @@ class Window(object):
       # create thread for waiting for other players
       self.game_threads['wait_for_players'] = {}
 
+      # TODO: delete this after waiting for other players
       self.game_threads['wait_for_players']['evt'] = threading.Event()
       self.game_threads['wait_for_players']['thread'] = threading.Thread(
         name="wait_for_players_thread",
@@ -294,6 +313,17 @@ class Window(object):
 
     # delete the name
     del self.game_storage['current_name']
+
+  def draw_other_cards(self, identifier, cards):
+    # resolve the canvas id
+    canvas_id = "player_canvas_%s" % identifier
+    player_on_hand_key = "cards_on_hand_%s" % identifier
+
+    # load the cards on the player canvas
+    if player_on_hand_key in self.game_storage:
+      self.load_cards(cards, self.game_storage[player_on_hand_key], self.main_gui_items[canvas_id], True)
+
+    print('Drawing Complete')
 
   def load_cards(self, cards, card_collection, canvas, has_hidden_card=False):
     num_cards = len(cards)
@@ -429,5 +459,41 @@ class Window(object):
 
         if 'on_room_destroyed' in kwargs and callable(kwargs['on_room_destroyed']):
           kwargs['on_room_destroyed']()
+
+  def draw_player_cards(self, stop_event, game_manager, **kwargs):
+    excluded_uids = []
+
+    # TODO: add check if the passwd argument is list
+    if 'excluded_uids' in kwargs:
+      excluded_uids = kwargs['excluded_uids']
+
+    while not stop_event.is_set():
+      on_hands = game_manager.get_player_cards(excluded_uids)
+
+      # no more to draw
+      if len(on_hands) == 0:
+        break
+
+      for identifier, hand in on_hands.items():
+        if len(hand) > 0:
+          print(identifier)
+          print(hand)
+
+          # exclude the identifier for the next iteration
+          excluded_uids.append(identifier)
+
+          if 'on_hand' in kwargs and callable(kwargs['on_hand']):
+            kwargs['on_hand'](identifier, hand)
+
+    if stop_event.is_set():
+      print('Thread terminated')
+
+      if 'on_thread_terminated' in kwargs and callable(kwargs['on_thread_terminated']):
+        kwargs['on_thread_terminated']()
+    else:
+      print('Draw complete')
+
+      if 'on_draw_complete' in kwargs and callable(kwargs['on_draw_complete']):
+        kwargs['on_draw_complete']()
 
 
