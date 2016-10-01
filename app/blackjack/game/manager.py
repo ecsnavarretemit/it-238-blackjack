@@ -72,6 +72,15 @@ class Manager(object):
 
     return counter
 
+  def get_player_uids(self):
+    key_list = []
+
+    for key, state in self.states.items():
+      if state['is_ready'] is True:
+        key_list.append(key)
+
+    return key_list
+
   def disconnect(self, identifier):
     if identifier in self.states:
       del self.states[identifier]
