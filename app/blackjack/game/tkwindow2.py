@@ -321,8 +321,26 @@ class Window(object):
       # Empty the input box
       self.splash_gui_items['name_input'].delete(0, pygui.END)
 
-  def reflect_score(self, canvas, label, player_name, score):
-    canvas.itemconfig(label, text="%s: %d" % (player_name, score))
+  def reflect_score(self, identifier, has_hidden_card=False):
+    resolved_label = "You"
+
+    if identifier != self.game_storage['connection_uid']:
+      resolved_label = strip_uid(identifier)
+
+    # resolve keys
+    canvas_key = "player_canvas_%s" % identifier
+    label_key = "player_label_%s" % identifier
+
+    # get the total of the draw cards
+    initial_score = 0
+
+    try:
+      initial_score = self.game_manager.get_player_card_total(identifier, has_hidden_card)
+    except SerializeError:
+      print("Pyro traceback:")
+      print("".join(PyroExceptionTraceback()))
+
+    self.main_gui_items[canvas_key].itemconfig(self.main_gui_items[label_key], text="%s: %d" % (resolved_label, initial_score))
 
   def connect_to_server(self):
     try:
@@ -443,36 +461,18 @@ class Window(object):
         self.draw_cards_on_canvas(player_uid, new_cards, False)
       else:
         # reflect the new score if the other players have not drawn new cards
-        pass
+        self.reflect_score(player_uid, False)
 
-  def draw_cards_on_canvas(self, identifier, cards, has_hidden_card):
+  def draw_cards_on_canvas(self, identifier, cards, has_hidden_card=False):
     # resolve the canvas id
     canvas_id = "player_canvas_%s" % identifier
     player_on_hand_key = "cards_on_hand_%s" % identifier
 
-    resolved_label = "You"
-
-    if identifier != self.game_storage['connection_uid']:
-      resolved_label = strip_uid(identifier)
-
-    # load the cards on the player canvas
+    # load the cards on the player canvas and reflect the new score
     if player_on_hand_key in self.game_storage:
       self.load_cards(cards, self.game_storage[player_on_hand_key], self.main_gui_items[canvas_id], has_hidden_card)
 
-      # resolve the label key
-      label_key = "player_label_%s" % identifier
-
-      # get the total of the draw cards
-      initial_score = 0
-
-      try:
-        initial_score = self.game_manager.get_player_card_total(identifier, has_hidden_card)
-      except SerializeError:
-        print("Pyro traceback:")
-        print("".join(PyroExceptionTraceback()))
-
-      # show the new score on the canvas
-      self.reflect_score(self.main_gui_items[canvas_id], self.main_gui_items[label_key], resolved_label, initial_score)
+      self.reflect_score(identifier, has_hidden_card)
 
     print('Drawing Complete')
 
