@@ -576,7 +576,7 @@ class Window(object):
   def draw_player_cards(self, stop_event, game_manager, **kwargs):
     excluded_uids = []
 
-    # TODO: add check if the passwd argument is list
+    # TODO: add check if the passed argument is list
     if 'excluded_uids' in kwargs:
       excluded_uids = kwargs['excluded_uids']
 
