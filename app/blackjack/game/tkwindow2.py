@@ -141,7 +141,6 @@ class Window(object):
       print("Pyro traceback:")
       print("".join(PyroExceptionTraceback()))
 
-  # TODO: reveal cards before showing popup message
   def declare_winners(self, response):
     winner_message = "Player: %s has won the round with the score of %d!"
     status = ""
