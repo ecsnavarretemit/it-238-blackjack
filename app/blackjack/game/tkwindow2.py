@@ -99,7 +99,7 @@ class Window(object):
       # get 1 new card
       new_card = self.game_manager.draw_cards(self.game_storage['connection_uid'], 1)
 
-      self.draw_cards_on_canvas(self.game_storage['connection_uid'], new_card)
+      self.draw_cards_on_canvas(self.game_storage['connection_uid'], new_card, False)
 
       # get the new card total after getting new card and rendering it in the canvas
       card_total = self.game_manager.get_player_card_total(self.game_storage['connection_uid'])
@@ -145,6 +145,9 @@ class Window(object):
   def declare_winners(self, response):
     winner_message = "Player: %s has won the round with the score of %d!"
     status = ""
+
+    # reveal all cards (hidden cards and new cards from other players)
+    self.reveal_all_cards()
 
     if 'winners' in response and len(response['winners']) >= 1:
       if len(response['winners']) > 1:
@@ -280,7 +283,7 @@ class Window(object):
 
       drawn_cards = self.game_manager.draw_cards(self.game_storage['connection_uid'], 2)
 
-      self.draw_cards_on_canvas(self.game_storage['connection_uid'], drawn_cards)
+      self.draw_cards_on_canvas(self.game_storage['connection_uid'], drawn_cards, False)
 
       # TODO: delete this after waiting for other players
       # run thread for listening to others on hand
@@ -405,17 +408,52 @@ class Window(object):
       print("Pyro traceback:")
       print("".join(PyroExceptionTraceback()))
 
-  def draw_cards_on_canvas(self, identifier, cards):
+  def reveal_all_cards(self):
+    player_uids = self.game_manager.get_player_uids()
+    player_cards = self.game_manager.get_player_cards([
+      self.game_storage['connection_uid']
+    ])
+
+    for player_uid in player_uids:
+      # skip to the next iteration if the player_uid is equal to the connection_uid
+      if player_uid == self.game_storage['connection_uid']:
+        continue
+
+      canvas_id = "player_canvas_%s" % player_uid
+      player_on_hand_key = "cards_on_hand_%s" % player_uid
+
+      on_hand = self.game_storage[player_on_hand_key]
+      canvas = self.main_gui_items[canvas_id]
+
+      # loop over the cards on hand draw the reveal the hidden card
+      for card in on_hand:
+        card_text = card['text']
+
+        # reveal the hidden card
+        if card['is_hidden'] is True:
+          canvas.itemconfig(card['canvas_img'], image=self.window.card_cache[card_text]['tk_img'])
+
+      # when cached cards length does not match with the returned player_cards,
+      # slice and draw new cards on the canvas
+      if len(player_cards[player_uid]) > len(on_hand):
+        # since only 2 cards is revealed in the other's on hand,
+        # extract the new cards out from the list
+        new_cards = player_cards[player_uid][2:]
+
+        self.draw_cards_on_canvas(player_uid, new_cards, False)
+      else:
+        # reflect the new score if the other players have not drawn new cards
+        pass
+
+  def draw_cards_on_canvas(self, identifier, cards, has_hidden_card):
     # resolve the canvas id
     canvas_id = "player_canvas_%s" % identifier
     player_on_hand_key = "cards_on_hand_%s" % identifier
 
     resolved_label = "You"
-    has_hidden_card = False
 
     if identifier != self.game_storage['connection_uid']:
       resolved_label = strip_uid(identifier)
-      has_hidden_card = True
 
     # load the cards on the player canvas
     if player_on_hand_key in self.game_storage:
@@ -596,7 +634,7 @@ class Window(object):
           excluded_uids.append(identifier)
 
           if 'on_hand' in kwargs and callable(kwargs['on_hand']):
-            kwargs['on_hand'](identifier, hand)
+            kwargs['on_hand'](identifier, hand, True)
 
     if stop_event.is_set():
       print('Thread terminated')
