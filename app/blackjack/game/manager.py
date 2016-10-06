@@ -11,18 +11,6 @@ from app.blackjack.cards.transformer import TextToCardTransformer
 
 MAX_PLAYERS = 4
 
-class State(object):
-
-  def __init__(self, name, ip, socket):
-    # save the name
-    self.name = name
-
-    # save the IP address
-    self.ip = ip
-
-    # save the socket
-    self.socket = socket
-
 # TODO: implement cleanup of data and game restart
 # TODO: implement logic for incrementing 'games_played', 'total_wins' and 'total_losses'
 @Pyro4.expose
