@@ -339,7 +339,8 @@ class Window(object):
       print("Pyro traceback:")
       print("".join(PyroExceptionTraceback()))
 
-    self.main_gui_items[canvas_key].itemconfig(self.main_gui_items[label_key], text="%s: %d" % (resolved_label, initial_score))
+    self.main_gui_items[canvas_key].itemconfig(self.main_gui_items[label_key],
+                                               text="%s: %d" % (resolved_label, initial_score))
 
   def connect_to_server(self):
     try:
