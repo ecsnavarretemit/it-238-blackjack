@@ -42,6 +42,21 @@ class Manager(object):
     # shuffle the deck
     self.deck.shuffle()
 
+  def new_game(self, identifier):
+    # increment the number of games played
+    self.states[identifier]['games_played'] += 1
+
+    # unlock hand
+    self.states[identifier]['hand_locked'] = False
+
+    # make sure player is ready
+    self.states[identifier]['is_ready'] = True
+
+    # empty the cards on hand
+    self.states[identifier]['cards_on_hand'] = []
+
+    print('New Game')
+
   # TODO: throw error when number_of_cards is less than 1
   # TODO: implement card refresh when the number of remaining cards in the deck is less than 10
   def draw_cards(self, identifier, number_of_cards=2):
