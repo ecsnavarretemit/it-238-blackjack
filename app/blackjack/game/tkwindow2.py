@@ -167,8 +167,21 @@ class Window(object):
 
     # if the user answered "OK" to the question, we start a new game session
     if answer is True:
+      # enable the buttons
+      self.main_gui_items['stand_btn'].config(state=pygui.NORMAL)
+      self.main_gui_items['hit_btn'].config(state=pygui.NORMAL)
+
+      # clean up some resources
+      self.cleanup()
+
+      # invoke new game
+      self.game_manager.new_game(self.game_storage['connection_uid'])
+
+      # start new session
+      self.init_game_session()
+    else:
+      # TODO: enable the new game button here
       pass
-      # self.init_game_session()
 
   def switch_context(self, context):
     if context == 'main':
@@ -463,6 +476,21 @@ class Window(object):
         # reflect the new score if the other players have not drawn new cards
         self.reflect_score(player_uid, False)
 
+  def remove_cards_on_canvas(self, identifier):
+    canvas_key = "player_canvas_%s" % identifier
+    on_hand_key = "cards_on_hand_%s" % identifier
+
+    # skip if canvas_key or on_hand_key is not on the corresponding dictionaries
+    if not (canvas_key in self.main_gui_items) or not (on_hand_key in self.game_storage):
+      return False
+
+    # loop all cards
+    for on_hand in self.game_storage[on_hand_key]:
+      # delete the image on the canvas
+      self.main_gui_items[canvas_key].delete(on_hand['canvas_img'])
+
+    return True
+
   def draw_cards_on_canvas(self, identifier, cards, has_hidden_card=False):
     # resolve the canvas id
     canvas_id = "player_canvas_%s" % identifier
@@ -572,6 +600,27 @@ class Window(object):
     # prevent garbage collection that's why we are storing the reference to the window object
     self.window.splash_img = ImageTk.PhotoImage(splash_logo)
     # [splash image] ::start
+
+  def cleanup(self):
+    # save the needed keys before emptying the game storage
+    connection_uid = self.game_storage['connection_uid']
+    current_name = self.game_storage['current_name']
+
+    player_uids = self.game_manager.get_player_uids()
+
+    # loop through all players
+    for player_uid in player_uids:
+      self.remove_cards_on_canvas(player_uid)
+
+    # clear the game threads
+    self.game_threads.clear()
+
+    # clear the game storage
+    self.game_storage.clear()
+
+    # store back the connection uid and name
+    self.game_storage['connection_uid'] = connection_uid
+    self.game_storage['current_name'] = current_name
 
   def set_game_manager(self, game_manager: PyroProxy):
     self.game_manager = game_manager
