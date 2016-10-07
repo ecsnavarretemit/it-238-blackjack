@@ -177,9 +177,9 @@ class Manager(object):
   def lock_game(self, lock=True):
     self.room_locked = lock
 
-  def make_ready(self, identifier):
+  def make_ready(self, identifier, ready=True):
     if identifier in self.states:
-      self.states[identifier]['is_ready'] = True
+      self.states[identifier]['is_ready'] = ready
 
   def is_room_ready(self):
     player_ready_count = self.player_ready_count()
@@ -188,6 +188,9 @@ class Manager(object):
       return True
 
     return False
+
+  def player_count(self):
+    return len(self.states)
 
   def player_ready_count(self):
     counter = 0

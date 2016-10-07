@@ -378,7 +378,7 @@ class Window(object):
       self.game_storage['current_name'] = nameval
 
       # set the player to ready status
-      self.game_manager.make_ready(self.game_storage['connection_uid'])
+      self.game_manager.make_ready(self.game_storage['connection_uid'], True)
 
       # [Debug Statement] ::start
       print("Connection UID: %s" % self.game_storage['connection_uid'])
