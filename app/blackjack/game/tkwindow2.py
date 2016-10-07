@@ -30,6 +30,9 @@ class Window(object):
     # create new instance of TK
     self.window = pygui.Tk()
 
+    # logger
+    self.logger = None
+
     # create cache for tk card images
     self.window.card_cache = {}
 
@@ -64,7 +67,9 @@ class Window(object):
 
   def bootstrap(self):
     if self.game_manager is None:
-      print("No custom game manager connection provided. Establishing connection with default parameters.")
+      if self.logger != None:
+        self.logger.log('Bootstrap',
+                        "No custom game manager connection provided. Establishing connection with default parameters.")
 
       self.game_manager = PyroProxy("PYRO:standard.manager@localhost:3000")
 
@@ -109,8 +114,8 @@ class Window(object):
         self.stand()
 
     except SerializeError:
-      print("Pyro traceback:")
-      print("".join(PyroExceptionTraceback()))
+      if self.logger != None:
+        self.logger.log("Pyro traceback", "".join(PyroExceptionTraceback()))
 
   def stand(self):
     try:
@@ -138,8 +143,8 @@ class Window(object):
       # start the listener thread
       self.game_threads['winner_declaration_listener']['thread'].start()
     except SerializeError:
-      print("Pyro traceback:")
-      print("".join(PyroExceptionTraceback()))
+      if self.logger != None:
+        self.logger.log("Pyro traceback", "".join(PyroExceptionTraceback()))
 
   def declare_winners(self, response):
     winner_message = "Player: %s has won the round with the score of %d!"
@@ -253,8 +258,8 @@ class Window(object):
       # start the game session
       self.init_game_session()
     except SerializeError:
-      print("Pyro traceback:")
-      print("".join(PyroExceptionTraceback()))
+      if self.logger != None:
+        self.logger.log("Pyro traceback", "".join(PyroExceptionTraceback()))
 
   def splash_gui(self):
     if self.splash_bootstrapped is False:
@@ -317,8 +322,8 @@ class Window(object):
       # start the listener thread
       self.game_threads['on_hand_listener']['thread'].start()
     except SerializeError:
-      print("Pyro traceback:")
-      print("".join(PyroExceptionTraceback()))
+      if self.logger != None:
+        self.logger.log("Pyro traceback", "".join(PyroExceptionTraceback()))
 
   def toggle_name_input(self, hide=False):
     if hide is True:
@@ -349,8 +354,8 @@ class Window(object):
     try:
       initial_score = self.game_manager.get_player_card_total(identifier, has_hidden_card)
     except SerializeError:
-      print("Pyro traceback:")
-      print("".join(PyroExceptionTraceback()))
+      if self.logger != None:
+        self.logger.log("Pyro traceback", "".join(PyroExceptionTraceback()))
 
     self.main_gui_items[canvas_key].itemconfig(self.main_gui_items[label_key],
                                                text="%s: %d" % (resolved_label, initial_score))
@@ -380,9 +385,8 @@ class Window(object):
       # set the player to ready status
       self.game_manager.make_ready(self.game_storage['connection_uid'], True)
 
-      # [Debug Statement] ::start
-      print("Connection UID: %s" % self.game_storage['connection_uid'])
-      # [Debug Statement] ::end
+      if self.logger != None:
+        self.logger.log("Connection UID", self.game_storage['connection_uid'])
 
       # hide the input/start_btn and change the label
       self.toggle_name_input(True)
@@ -411,9 +415,8 @@ class Window(object):
       # show message to the user
       messagebox.showerror(self.window_title, "Failed to connect to server. Try again later.")
 
-      # show trace to the client
-      print("Pyro traceback:")
-      print("".join(PyroExceptionTraceback()))
+      if self.logger != None:
+        self.logger.log("Pyro traceback", "".join(PyroExceptionTraceback()))
 
   # TODO: implement game disconnection when inside the game
   def disconnect(self, force=False):
@@ -436,8 +439,8 @@ class Window(object):
       # delete the name
       del self.game_storage['current_name']
     except SerializeError:
-      print("Pyro traceback:")
-      print("".join(PyroExceptionTraceback()))
+      if self.logger != None:
+        self.logger.log("Pyro traceback", "".join(PyroExceptionTraceback()))
 
   def reveal_all_cards(self):
     player_uids = self.game_manager.get_player_uids()
@@ -501,8 +504,6 @@ class Window(object):
       self.load_cards(cards, self.game_storage[player_on_hand_key], self.main_gui_items[canvas_id], has_hidden_card)
 
       self.reflect_score(identifier, has_hidden_card)
-
-    print('Drawing Complete')
 
   def load_cards(self, cards, card_collection, canvas, has_hidden_card=False):
     num_cards = len(cards)
@@ -625,6 +626,9 @@ class Window(object):
   def set_game_manager(self, game_manager: PyroProxy):
     self.game_manager = game_manager
 
+  def set_logger(self, logger):
+    self.logger = logger
+
   def check_if_ready(self, stop_event, game_manager, **kwargs):
     end_time = datetime.datetime.now() + datetime.timedelta(minutes=1)
     room_is_complete = False
@@ -641,13 +645,15 @@ class Window(object):
         break
 
     if stop_event.is_set():
-      print('Thread terminated')
+      if self.logger != None:
+        self.logger.log("check_if_ready", "Thread terminated")
 
       if 'on_thread_terminated' in kwargs and callable(kwargs['on_thread_terminated']):
         kwargs['on_thread_terminated']()
     else:
       if room_is_complete is True:
-        print('Go to main game screen')
+        if self.logger != None:
+          self.logger.log("check_if_ready", "Go to main screen.")
 
         # lock the game to prevent other players from joining
         game_manager.lock_game(True)
@@ -655,7 +661,9 @@ class Window(object):
         if 'on_room_completed' in kwargs and callable(kwargs['on_room_completed']):
           kwargs['on_room_completed']()
       else:
-        print("Destroy Game Room. Player count is %s" % game_manager.player_ready_count())
+        if self.logger != None:
+          self.logger.log("check_if_ready",
+                          ("Destroy Game Room. Player count is %s" % game_manager.player_ready_count()))
 
         if 'on_room_destroyed' in kwargs and callable(kwargs['on_room_destroyed']):
           kwargs['on_room_destroyed']()
@@ -676,9 +684,6 @@ class Window(object):
 
       for identifier, hand in on_hands.items():
         if len(hand) > 0:
-          print(identifier)
-          print(hand)
-
           # exclude the identifier for the next iteration
           excluded_uids.append(identifier)
 
@@ -686,12 +691,14 @@ class Window(object):
             kwargs['on_hand'](identifier, hand, True)
 
     if stop_event.is_set():
-      print('Thread terminated')
+      if self.logger != None:
+        self.logger.log("draw_player_cards", "Thread terminated")
 
       if 'on_thread_terminated' in kwargs and callable(kwargs['on_thread_terminated']):
         kwargs['on_thread_terminated']()
     else:
-      print('Draw complete')
+      if self.logger != None:
+        self.logger.log("draw_player_cards", "Draw complete")
 
       if 'on_draw_complete' in kwargs and callable(kwargs['on_draw_complete']):
         kwargs['on_draw_complete']()
@@ -706,11 +713,15 @@ class Window(object):
         break
 
     if stop_event.is_set():
-      print('Thread terminated')
+      if self.logger != None:
+        self.logger.log("find_winners", "Thread terminated")
 
       if 'on_thread_terminated' in kwargs and callable(kwargs['on_thread_terminated']):
         kwargs['on_thread_terminated']()
     else:
+      if self.logger != None:
+        self.logger.log("find_winners", "complete")
+
       if 'on_identify_winners' in kwargs and callable(kwargs['on_identify_winners']):
         kwargs['on_identify_winners'](response)
 

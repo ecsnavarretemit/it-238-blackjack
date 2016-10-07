@@ -5,6 +5,7 @@
 # Version 1.1.0
 
 import Pyro4
+from app.logger import Logger
 from app.helpers import rand_uid, strip_uid
 from app.blackjack.cards.deck import SerializableDeck
 from app.blackjack.cards.transformer import TextToCardTransformer
@@ -22,6 +23,9 @@ class Manager(object):
 
     # save state
     self.states = {}
+
+    # message logging
+    self.logger = Logger("BlackJack State Manager")
 
     # boolean to determine whether a game is on going or not
     self.room_locked = False
@@ -55,7 +59,8 @@ class Manager(object):
     # empty the cards on hand
     self.states[identifier]['cards_on_hand'] = []
 
-    print('New Game')
+    if self.logger != None:
+      self.logger.log('new_game', "Starting a new game.")
 
   # TODO: throw error when number_of_cards is less than 1
   # TODO: implement card refresh when the number of remaining cards in the deck is less than 10
@@ -73,8 +78,8 @@ class Manager(object):
       for card in drawn_cards:
         self.states[identifier]['cards_on_hand'].append(card)
 
-      print("Drawn card. State of %s modified" % identifier)
-      print(self.states[identifier])
+      if self.logger != None:
+        self.logger.log("Drawn card. State of %s modified" % identifier, self.states[identifier])
 
     return drawn_cards
 
@@ -214,8 +219,8 @@ class Manager(object):
     if identifier in self.states:
       del self.states[identifier]
 
-      print("player left the game: %s" % identifier)
-      print(self.states)
+      if self.logger != None:
+        self.logger.log("Player left: %s" % identifier, self.states)
 
       return True
 
@@ -223,7 +228,8 @@ class Manager(object):
 
   def connect(self, name):
     if self.room_locked is True:
-      print("Player: %s is trying to connect a locked game." % name)
+      if self.logger != None:
+        self.logger.log("connect", "Player: %s is trying to connect a locked game." % name)
       return False
 
     key = name + ':uid-' + rand_uid(10)
@@ -236,8 +242,8 @@ class Manager(object):
       'hand_locked': False
     }
 
-    print("joined player: %s" % key)
-    print(self.states[key])
+    if self.logger != None:
+      self.logger.log("Player Joined: %s" % key, self.states[key])
 
     return key
 
