@@ -48,22 +48,6 @@ class Manager(object):
     # shuffle the deck
     self.deck.shuffle()
 
-  # def new_game(self):
-  #   for _, state in self.states.items():
-  #     state['games_played'] += 1
-
-  #     # unlock hand
-  #     state['hand_locked'] = False
-
-  #     # make sure player is ready
-  #     state['is_ready'] = True
-
-  #     # empty the cards on hand
-  #     state['cards_on_hand'] = []
-
-  #     if self.logger != None:
-  #       self.logger.log('new_game', "reset state")
-
   def new_game(self, identifier):
     if self.is_new_game_requested is False:
       for _, state in self.states.items():
