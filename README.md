@@ -6,6 +6,10 @@ IT 238 Exercise 4 - Multiplayer Blackjack Game. Up to 4 players!
 
 ## Installation of Requirements
 
+### All Operating Systems
+
+1. Python 3.5.2 or greater is required!
+
 ### Ubuntu
 
 1. Install Pip: `sudo apt-get install python3-pip`
