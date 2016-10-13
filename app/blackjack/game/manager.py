@@ -32,6 +32,9 @@ class Manager(object):
     # boolean if new game is requested
     self.is_new_game_requested = False
 
+    # boolean if deck newly created
+    self.is_deck_refreshed = False
+
     # blackjack goal number
     self.winning_number = 21
 
@@ -54,6 +57,10 @@ class Manager(object):
         # make sure player is not ready
         state['is_ready'] = False
 
+      # set back to false to allow deck refresh
+      self.is_deck_refreshed = False
+
+      # set to true to prevent executing this block on next call
       self.is_new_game_requested = True
 
     # increment the number of games played
@@ -69,7 +76,6 @@ class Manager(object):
       self.logger.log('new_game', "Starting a new game.")
 
   # TODO: throw error when number_of_cards is less than 1
-  # TODO: implement card refresh when the number of remaining cards in the deck is less than 10
   def draw_cards(self, identifier, number_of_cards=2):
     drawn_cards = []
 
@@ -86,6 +92,9 @@ class Manager(object):
 
       if self.logger != None:
         self.logger.log("Drawn card. State of %s modified" % identifier, self.states[identifier])
+
+    if self.logger != None:
+      self.logger.log("Drawn card. Remaining cards", self.deck.get_remaining_cards())
 
     return drawn_cards
 
@@ -178,6 +187,16 @@ class Manager(object):
       if score == min_val:
         winners.append(strip_uid(f_identifier))
         matching_score = self.get_player_card_total(f_identifier, False)
+
+    # recreate the deck to prevent error from getting no cards
+    if self.deck.get_remaining_cards() <= 15 and self.is_deck_refreshed is False:
+      self.init_deck()
+
+      # set the flag to true to indicate that the deck has been refreshed
+      self.is_deck_refreshed = True
+
+      if self.logger != None:
+        self.logger.log('new_game', "Creating new  and shuffling the deck.")
 
     return {
       'winners': winners,
