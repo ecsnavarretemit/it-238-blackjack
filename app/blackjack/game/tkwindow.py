@@ -23,6 +23,7 @@ from Pyro4.util import getPyroTraceback as PyroExceptionTraceback, excepthook as
 # add hooks to exception hooks
 sys.excepthook = PyroExceptHook
 
+# TODO: instances of mixed pack() and grid(). This doesn't work on Ubuntu.
 class Window(object):
 
   def __init__(self, window_title="BlackJack"):
