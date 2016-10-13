@@ -228,10 +228,10 @@ class Window(object):
 
       if len(player_uids) > 2:
         # set default window size if the number of players is greater than 2
-        self.window.minsize(1024, 620)
+        self.window.minsize(1024, 650)
       else:
         # set default window size if the number of players is greater than 2
-        self.window.minsize(500, 620)
+        self.window.minsize(500, 650)
 
       # base frame for the game window
       self.main_gui_items['main_frame'] = pygui.Frame(self.window)
@@ -254,7 +254,7 @@ class Window(object):
         # create frame for each player
         self.main_gui_items[frame_key] = pygui.Frame(self.main_gui_items['main_frame'])
         self.main_gui_items[frame_key].pack()
-        self.main_gui_items[frame_key].grid(row=row, column=column)
+        self.main_gui_items[frame_key].grid(row=row, column=column, padx=10, pady=25)
 
         # create canvas
         self.main_gui_items[canvas_key] = pygui.Canvas(self.main_gui_items[frame_key], width=500, height=250)
