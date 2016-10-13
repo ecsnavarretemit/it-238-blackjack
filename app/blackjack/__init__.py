@@ -2,5 +2,6 @@
 #
 # Copyright(c) Exequiel Ceasar Navarrete <esnavarrete1@up.edu.ph>
 # Licensed under MIT
-# Version 1.1.0
+# Version 2.0.0
+
 
