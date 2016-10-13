@@ -28,8 +28,8 @@ def main():
 
     # PYRO:standard.deck@localhost:3000
     game_manager = PyroProxy("PYRO:%s@%s:%d" % (config['app']['manager']['object_name'],
-                             config['app']['server']['host'],
-                             config['app']['server']['port']))
+                                                config['app']['server']['host'],
+                                                config['app']['server']['port']))
 
     # set the game deck
     window.set_game_manager(game_manager)

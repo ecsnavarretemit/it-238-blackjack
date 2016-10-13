@@ -267,18 +267,15 @@ class Window(object):
         self.logger.log(player_uid, ("Row: %d Column: %d" % (row, column)))
 
         # process grid positioning accross the frame
+        tmp_idx = index + 1
         if len(player_uids) > 2:
-          tmp_idx_max = index + 1
-          if tmp_idx_max % 2 == 0:
+          if tmp_idx % 2 == 0:
             row += 1
             column = 0
           else:
             column += 1
         else:
-          tmp_idx_min = index + 1
-          if tmp_idx_min % 2 == 0:
-            pass
-          else:
+          if tmp_idx % 2 != 0:
             row += 1
 
       # [Controls] ::start
@@ -533,7 +530,7 @@ class Window(object):
     on_hand_key = "cards_on_hand_%s" % identifier
 
     # skip if canvas_key or on_hand_key is not on the corresponding dictionaries
-    if not (canvas_key in self.main_gui_items) or not (on_hand_key in self.game_storage):
+    if not canvas_key in self.main_gui_items or not on_hand_key in self.game_storage:
       return False
 
     # loop all cards
