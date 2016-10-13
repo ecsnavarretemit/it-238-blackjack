@@ -172,7 +172,6 @@ class Window(object):
     self.cleanup()
 
     # invoke new game
-    # self.game_manager.new_game()
     self.game_manager.new_game(self.game_storage['connection_uid'])
 
     # run thread for listening for other to acknowledge the new game
