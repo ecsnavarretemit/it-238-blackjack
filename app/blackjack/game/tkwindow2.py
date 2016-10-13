@@ -23,7 +23,6 @@ from Pyro4.util import getPyroTraceback as PyroExceptionTraceback, excepthook as
 # add hooks to exception hooks
 sys.excepthook = PyroExceptHook
 
-# TODO: implement cleanup of threads and data storage and game restart
 class Window(object):
 
   def __init__(self, window_title="BlackJack"):
@@ -126,7 +125,6 @@ class Window(object):
       self.main_gui_items['stand_btn'].config(state=pygui.DISABLED)
       self.main_gui_items['hit_btn'].config(state=pygui.DISABLED)
 
-      # TODO: delete this after waiting for other players
       # run thread for listening to others on hand
       self.game_threads['winner_declaration_listener'] = {}
 
@@ -170,20 +168,37 @@ class Window(object):
     # show a prompt to start a new game.
     answer = messagebox.askokcancel(self.window_title, "%s Want to start a new game?" % status)
 
+    # clean up some resources
+    self.cleanup()
+
+    # invoke new game
+    # self.game_manager.new_game()
+    self.game_manager.new_game(self.game_storage['connection_uid'])
+
+    # run thread for listening for other to acknowledge the new game
+    self.game_threads['wait_for_acknowledgement'] = {}
+
+    self.game_threads['wait_for_acknowledgement']['evt'] = threading.Event()
+    self.game_threads['wait_for_acknowledgement']['thread'] = threading.Thread(
+      name="wait_for_acknowledgement_thread",
+      target=self.check_if_all_acknowledged,
+      args=(self.game_threads['wait_for_acknowledgement']['evt'], self.game_manager,),
+      kwargs={
+        'on_acknowledge': self.init_game_session
+      }
+    )
+
+    # start the listener thread
+    self.game_threads['wait_for_acknowledgement']['thread'].start()
+
     # if the user answered "OK" to the question, we start a new game session
     if answer is True:
       # enable the buttons
       self.main_gui_items['stand_btn'].config(state=pygui.NORMAL)
       self.main_gui_items['hit_btn'].config(state=pygui.NORMAL)
 
-      # clean up some resources
-      self.cleanup()
-
-      # invoke new game
-      self.game_manager.new_game(self.game_storage['connection_uid'])
-
-      # start new session
-      self.init_game_session()
+      # change the ready status to true
+      self.game_manager.make_ready(self.game_storage['connection_uid'], True)
     else:
       # TODO: enable the new game button here
       pass
@@ -302,7 +317,6 @@ class Window(object):
 
       self.draw_cards_on_canvas(self.game_storage['connection_uid'], drawn_cards, False)
 
-      # TODO: delete this after waiting for other players
       # run thread for listening to others on hand
       self.game_threads['on_hand_listener'] = {}
 
@@ -397,7 +411,6 @@ class Window(object):
       # create thread for waiting for other players
       self.game_threads['wait_for_players'] = {}
 
-      # TODO: delete this after waiting for other players
       self.game_threads['wait_for_players']['evt'] = threading.Event()
       self.game_threads['wait_for_players']['thread'] = threading.Thread(
         name="wait_for_players_thread",
@@ -667,6 +680,22 @@ class Window(object):
 
         if 'on_room_destroyed' in kwargs and callable(kwargs['on_room_destroyed']):
           kwargs['on_room_destroyed']()
+
+  def check_if_all_acknowledged(self, stop_event, game_manager, **kwargs):
+    while not stop_event.is_set():
+      # all players are ready
+      if game_manager.player_count() == game_manager.player_ready_count():
+        break
+
+    if stop_event.is_set():
+      if self.logger != None:
+        self.logger.log("check_if_ready", "Thread terminated")
+
+      if 'on_thread_terminated' in kwargs and callable(kwargs['on_thread_terminated']):
+        kwargs['on_thread_terminated']()
+    else:
+      if 'on_acknowledge' in kwargs and callable(kwargs['on_acknowledge']):
+        kwargs['on_acknowledge']()
 
   def draw_player_cards(self, stop_event, game_manager, **kwargs):
     excluded_uids = []

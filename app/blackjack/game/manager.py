@@ -12,7 +12,6 @@ from app.blackjack.cards.transformer import TextToCardTransformer
 
 MAX_PLAYERS = 4
 
-# TODO: implement cleanup of data and game restart
 # TODO: implement logic for incrementing 'games_played', 'total_wins' and 'total_losses'
 @Pyro4.expose
 class Manager(object):
@@ -30,6 +29,9 @@ class Manager(object):
     # boolean to determine whether a game is on going or not
     self.room_locked = False
 
+    # boolean if new game is requested
+    self.is_new_game_requested = False
+
     # blackjack goal number
     self.winning_number = 21
 
@@ -46,15 +48,35 @@ class Manager(object):
     # shuffle the deck
     self.deck.shuffle()
 
+  # def new_game(self):
+  #   for _, state in self.states.items():
+  #     state['games_played'] += 1
+
+  #     # unlock hand
+  #     state['hand_locked'] = False
+
+  #     # make sure player is ready
+  #     state['is_ready'] = True
+
+  #     # empty the cards on hand
+  #     state['cards_on_hand'] = []
+
+  #     if self.logger != None:
+  #       self.logger.log('new_game', "reset state")
+
   def new_game(self, identifier):
+    if self.is_new_game_requested is False:
+      for _, state in self.states.items():
+        # make sure player is not ready
+        state['is_ready'] = False
+
+      self.is_new_game_requested = True
+
     # increment the number of games played
     self.states[identifier]['games_played'] += 1
 
     # unlock hand
     self.states[identifier]['hand_locked'] = False
-
-    # make sure player is ready
-    self.states[identifier]['is_ready'] = True
 
     # empty the cards on hand
     self.states[identifier]['cards_on_hand'] = []
@@ -140,6 +162,9 @@ class Manager(object):
   def determine_winners(self):
     is_all_locked = True
 
+    # reset the flag
+    self.is_new_game_requested = False
+
     scores_dict = {}
     for identifier, state in self.states.items():
       if state['hand_locked'] is False:
@@ -207,13 +232,12 @@ class Manager(object):
     return counter
 
   def get_player_uids(self):
-    key_list = []
+    identifiter_list = []
 
-    for key, state in self.states.items():
-      if state['is_ready'] is True:
-        key_list.append(key)
+    for identifier, _ in self.states.items():
+      identifiter_list.append(identifier)
 
-    return key_list
+    return identifiter_list
 
   def disconnect(self, identifier):
     if identifier in self.states:
