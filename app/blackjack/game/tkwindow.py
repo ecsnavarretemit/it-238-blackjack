@@ -23,7 +23,6 @@ from Pyro4.util import getPyroTraceback as PyroExceptionTraceback, excepthook as
 # add hooks to exception hooks
 sys.excepthook = PyroExceptHook
 
-# TODO: instances of mixed pack() and grid(). This doesn't work on Ubuntu.
 class Window(object):
 
   def __init__(self, window_title="BlackJack"):
@@ -215,7 +214,7 @@ class Window(object):
     else:
       # hide the game
       if self.main_bootstrapped:
-        self.main_gui_items['main_frame'].pack_forget()
+        self.main_gui_items['main_frame'].grid_forget()
 
       # Show the splash page.
       self.splash_gui()
@@ -254,12 +253,11 @@ class Window(object):
 
         # create frame for each player
         self.main_gui_items[frame_key] = pygui.Frame(self.main_gui_items['main_frame'])
-        self.main_gui_items[frame_key].pack()
         self.main_gui_items[frame_key].grid(row=row, column=column, padx=10, pady=25)
 
         # create canvas
         self.main_gui_items[canvas_key] = pygui.Canvas(self.main_gui_items[frame_key], width=500, height=250)
-        self.main_gui_items[canvas_key].pack()
+        self.main_gui_items[canvas_key].grid(row=0)
 
         # make label
         self.main_gui_items[label_key] = self.main_gui_items[canvas_key].create_text(10, 0, anchor=pygui.NW)
@@ -294,12 +292,20 @@ class Window(object):
 
       self.main_gui_items['hit_btn'].grid(row=0, column=0)
 
-      self.main_gui_items['main_controls_frame'].pack()
-      self.main_gui_items['main_controls_frame'].grid(row=2, column=0)
+      controls_frame_opts = {
+        'row': 2,
+        'column': 0
+      }
+
+      # expand to 2 columns when number of players are greater than 2
+      if len(player_uids) > 2:
+        controls_frame_opts['columnspan'] = 2
+
+      self.main_gui_items['main_controls_frame'].grid(**controls_frame_opts)
       # [Controls] ::end
 
       # show the base frame
-      self.main_gui_items['main_frame'].pack()
+      self.main_gui_items['main_frame'].grid(row=0)
 
       # start the game session
       self.init_game_session()
