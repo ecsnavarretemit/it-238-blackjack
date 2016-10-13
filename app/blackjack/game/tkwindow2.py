@@ -226,10 +226,21 @@ class Window(object):
     try:
       player_uids = self.game_manager.get_player_uids()
 
+      if len(player_uids) > 2:
+        # set default window size if the number of players is greater than 2
+        self.window.minsize(1024, 620)
+      else:
+        # set default window size if the number of players is greater than 2
+        self.window.minsize(500, 620)
+
       # base frame for the game window
       self.main_gui_items['main_frame'] = pygui.Frame(self.window)
 
-      for player_uid in player_uids:
+      # define starting column position
+      row = 0
+      column = 0
+
+      for index, player_uid in enumerate(player_uids):
         frame_key = "player_frame_%s" % player_uid
         canvas_key = "player_canvas_%s" % player_uid
         label_key = "player_label_%s" % player_uid
@@ -242,7 +253,8 @@ class Window(object):
 
         # create frame for each player
         self.main_gui_items[frame_key] = pygui.Frame(self.main_gui_items['main_frame'])
-        self.main_gui_items[frame_key].pack(padx=10, pady=10)
+        self.main_gui_items[frame_key].pack()
+        self.main_gui_items[frame_key].grid(row=row, column=column)
 
         # create canvas
         self.main_gui_items[canvas_key] = pygui.Canvas(self.main_gui_items[frame_key], width=500, height=250)
@@ -251,6 +263,23 @@ class Window(object):
         # make label
         self.main_gui_items[label_key] = self.main_gui_items[canvas_key].create_text(10, 0, anchor=pygui.NW)
         self.main_gui_items[canvas_key].itemconfig(self.main_gui_items[label_key], text=label_text)
+
+        self.logger.log(player_uid, ("Row: %d Column: %d" % (row, column)))
+
+        # process grid positioning accross the frame
+        if len(player_uids) > 2:
+          tmp_idx_max = index + 1
+          if tmp_idx_max % 2 == 0:
+            row += 1
+            column = 0
+          else:
+            column += 1
+        else:
+          tmp_idx_min = index + 1
+          if tmp_idx_min % 2 == 0:
+            pass
+          else:
+            row += 1
 
       # [Controls] ::start
       self.main_gui_items['main_controls_frame'] = pygui.Frame(self.main_gui_items['main_frame'])
@@ -267,7 +296,8 @@ class Window(object):
 
       self.main_gui_items['hit_btn'].grid(row=0, column=0)
 
-      self.main_gui_items['main_controls_frame'].pack(padx=10, pady=10)
+      self.main_gui_items['main_controls_frame'].pack()
+      self.main_gui_items['main_controls_frame'].grid(row=2, column=0)
       # [Controls] ::end
 
       # show the base frame
