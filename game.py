@@ -4,10 +4,11 @@
 #
 # Copyright(c) Exequiel Ceasar Navarrete <esnavarrete1@up.edu.ph>
 # Licensed under MIT
-# Version 1.1.0
+# Version 2.0.0
 
 import os
 from yaml import load as yaml_load
+from app.logger import Logger
 from Pyro4.core import Proxy as PyroProxy
 from app.blackjack.game.tkwindow import Window as GameWindow
 
@@ -26,12 +27,15 @@ def main():
     config = yaml_load(yaml_config)
 
     # PYRO:standard.deck@localhost:3000
-    game_deck = PyroProxy("PYRO:%s@%s:%d" % (config['app']['deck']['object_name'],
-                                             config['app']['server']['host'],
-                                             config['app']['server']['port']))
+    game_manager = PyroProxy("PYRO:%s@%s:%d" % (config['app']['manager']['object_name'],
+                                                config['app']['server']['host'],
+                                                config['app']['server']['port']))
 
     # set the game deck
-    window.set_game_deck(game_deck)
+    window.set_game_manager(game_manager)
+
+    # enable logging
+    window.set_logger(Logger("BlackJack Client"))
 
     # close the file since we do not need it anymore
     yaml_config.close()
