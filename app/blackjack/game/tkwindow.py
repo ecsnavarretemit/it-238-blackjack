@@ -192,15 +192,13 @@ class Window(object):
 
     # if the user answered "OK" to the question, we start a new game session
     if answer is True:
-      # enable the buttons
-      self.main_gui_items['stand_btn'].config(state=pygui.NORMAL)
-      self.main_gui_items['hit_btn'].config(state=pygui.NORMAL)
-
-      # change the ready status to true
-      self.game_manager.make_ready(self.game_storage['connection_uid'], True)
+      self.send_ready()
     else:
-      # TODO: enable the new game button here
-      pass
+      self.main_gui_items['new_game_btn'].config(state=pygui.NORMAL)
+
+  def send_ready(self):
+    # change the ready status to true
+    self.game_manager.make_ready(self.game_storage['connection_uid'], True)
 
   def switch_context(self, context):
     if context == 'main':
@@ -279,17 +277,23 @@ class Window(object):
       # [Controls] ::start
       self.main_gui_items['main_controls_frame'] = pygui.Frame(self.main_gui_items['main_frame'])
 
+      self.main_gui_items['hit_btn'] = pygui.Button(self.main_gui_items['main_controls_frame'],
+                                                    text="Hit",
+                                                    command=self.hit)
+
+      self.main_gui_items['hit_btn'].grid(row=0, column=0)
+
       self.main_gui_items['stand_btn'] = pygui.Button(self.main_gui_items['main_controls_frame'],
                                                       text="Stand",
                                                       command=self.stand)
 
       self.main_gui_items['stand_btn'].grid(row=0, column=1)
 
-      self.main_gui_items['hit_btn'] = pygui.Button(self.main_gui_items['main_controls_frame'],
-                                                    text="Hit",
-                                                    command=self.hit)
+      self.main_gui_items['new_game_btn'] = pygui.Button(self.main_gui_items['main_controls_frame'],
+                                                         text="New Game",
+                                                         command=self.send_ready)
 
-      self.main_gui_items['hit_btn'].grid(row=0, column=0)
+      self.main_gui_items['new_game_btn'].grid(row=0, column=2)
 
       controls_frame_opts = {
         'row': 2,
@@ -342,6 +346,7 @@ class Window(object):
 
   def init_game_session(self):
     try:
+
       # initialize cards on hand of all players
       player_uids = self.game_manager.get_player_uids()
 
@@ -352,6 +357,13 @@ class Window(object):
       drawn_cards = self.game_manager.draw_cards(self.game_storage['connection_uid'], 2)
 
       self.draw_cards_on_canvas(self.game_storage['connection_uid'], drawn_cards, False)
+
+      # disable the new game btn
+      self.main_gui_items['new_game_btn'].config(state=pygui.DISABLED)
+
+      # enable the hit and stand buttons
+      self.main_gui_items['stand_btn'].config(state=pygui.NORMAL)
+      self.main_gui_items['hit_btn'].config(state=pygui.NORMAL)
 
       # run thread for listening to others on hand
       self.game_threads['on_hand_listener'] = {}
