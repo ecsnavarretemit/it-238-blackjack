@@ -220,6 +220,9 @@ class Window(object):
       self.splash_gui()
 
   def main_gui(self):
+    # set window title along the new name
+    self.window.wm_title("%s - %s" % (self.window_title, strip_uid(self.game_storage['connection_uid'])))
+
     try:
       player_uids = self.game_manager.get_player_uids()
 
@@ -445,6 +448,9 @@ class Window(object):
       else:
         # implement switching from main gui to splash gui
         pass
+
+      # set window title to the default title
+      self.window.wm_title(self.window_title)
 
       # delete the connection UID
       del self.game_storage['connection_uid']
