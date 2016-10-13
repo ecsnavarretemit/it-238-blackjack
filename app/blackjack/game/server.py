@@ -4,33 +4,34 @@
 # Licensed under MIT
 # Version 1.1.0
 
-from app.blackjack.cards.deck import SerializableDeck
-from app.cards.deck import Deck
+# from app.blackjack.cards.deck import SerializableDeck
+from app.blackjack.game.manager import Manager
+# from app.cards.deck import Deck
 from Pyro4.core import Daemon as PyroDaemon
 
 class Server(object):
 
   def __init__(self):
-    # create deck object
-    self.deck = SerializableDeck()
+    # initialize game manager
+    self.game_manager = Manager()
 
     # store connection details
     self.server_host = "localhost"
     self.server_port = 3000
 
-  def start(self, decklabel=None):
-    if decklabel is None:
-      decklabel = "standard.deck"
+  def start(self, managerlabel=None):
+    if managerlabel is None:
+      managerlabel = "standard.manager"
 
     PyroDaemon.serveSimple({
-      self.deck: decklabel
+      self.game_manager: managerlabel
     }, ns=False, host=self.server_host, port=self.server_port)
 
-  def get_deck(self):
-    return self.deck
+  def get_game_manager(self):
+    return self.game_manager
 
-  def set_deck(self, deck: Deck):
-    self.deck = deck
+  def set_game_manager(self, game_manager: Manager):
+    self.game_manager = game_manager
 
   def get_host(self):
     return self.server_host

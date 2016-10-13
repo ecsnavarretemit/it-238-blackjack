@@ -35,7 +35,7 @@ def main():
     yaml_config.close()
 
     # start the server with custom deck name
-    server.start(config['app']['deck']['object_name'])
+    server.start(config['app']['manager']['object_name'])
   else:
     # start the server default settings
     server.start()
