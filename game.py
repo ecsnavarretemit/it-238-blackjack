@@ -10,7 +10,7 @@ import os
 from yaml import load as yaml_load
 from app.logger import Logger
 from Pyro4.core import Proxy as PyroProxy
-from app.blackjack.game.tkwindow2 import Window as GameWindow
+from app.blackjack.game.tkwindow import Window as GameWindow
 
 def main():
   # application configuration
