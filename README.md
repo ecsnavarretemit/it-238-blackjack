@@ -1,8 +1,14 @@
 # it-238-blackjack
 
-IT 238 Exercise 3 - BlackJack Game with the application of Remote Method Invocation Concept using `Pyro4`
+[IT 238 Exercise 3](https://github.com/ecsnavarretemit/it-238-blackjack/tree/v1.1.0) - BlackJack Game with the application of Remote Method Invocation Concept using `Pyro4`
+
+IT 238 Exercise 4 - Multiplayer Blackjack Game. Up to 4 players!
 
 ## Installation of Requirements
+
+### All Operating Systems
+
+1. Python 3.5.2 or greater is required!
 
 ### Ubuntu
 
